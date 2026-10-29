@@ -1,0 +1,9 @@
+# Sources de recettes et leurs archives : elles restent sur l'ordinateur.
+# Le dépôt est PUBLIC et tout ce qui y est envoyé une fois reste dans l'historique.
+dépôt/
+.sauvegardes/
+
+# Divers système
+.DS_Store
+Thumbs.db
+*~

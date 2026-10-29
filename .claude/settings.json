@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git add -f:*)",
+      "Bash(git add --force:*)"
+    ]
+  }
+}

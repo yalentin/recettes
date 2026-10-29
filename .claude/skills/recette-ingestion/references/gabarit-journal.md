@@ -28,8 +28,8 @@ premier**.
 - Dont recettes à étapes reconstruites : {n}
 - Sources mises en _à-revoir : {n}
 - Tags proposés : {n}
-- Sauvegarde créée : `.sauvegardes/recettes-data.{horodatage}.js`
-- Validation syntaxique de recettes-data.js : {OK / ÉCHEC → sauvegarde restaurée}
+- Validation syntaxique de recettes-data.js : {OK / ÉCHEC → restauré avec git checkout}
+- Mise en ligne : {commit xxxxxxx envoyé / non envoyé — raison}
 
 ## Recettes ajoutées
 
