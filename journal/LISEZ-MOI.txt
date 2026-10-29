@@ -1,0 +1,1 @@
+Comptes rendus hebdomadaires du skill, un fichier par exécution (AAAA-MM-JJ.md).

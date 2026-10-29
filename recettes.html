@@ -1,0 +1,3531 @@
+<!DOCTYPE html>
+<html lang="fr" data-style="glass" data-img="on" data-dark>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recettes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Les polices du thème en vigueur (Vintage) sont chargées ICI, pas à la
+     demande : chargées après coup, le premier rendu se faisait dans une
+     autre police et sautait visiblement. Les polices des thèmes en sommeil
+     restent, elles, chargées à la demande. -->
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Alfa+Slab+One&display=swap" rel="stylesheet">
+<script>
+  /* ---------------------------------------------------------------------
+     ANTI-FLASH — doit rester ici, en tête, avant toute feuille de style.
+     Le thème était posé par le script de fin de page : le temps qu'il
+     s'exécute, le navigateur avait déjà peint la page avec les valeurs par
+     défaut de :root, c'est-à-dire l'habillage Aqua — d'où le « splash »
+     bleu-vert au chargement. On pose donc l'attribut de mode AVANT le
+     premier rendu, et les couleurs correspondantes sont écrites en dur
+     dans le CSS ci-dessous (et non calculées) pour ce premier rendu.
+     Le script de fin recalcule ensuite exactement les mêmes valeurs.
+     --------------------------------------------------------------------- */
+  /* ===== STYLE PAR DÉFAUT =============================================
+     Celui qu'on voit à la première ouverture dans un navigateur. Ensuite,
+     c'est le choix fait dans « Apparence » qui compte (tous les styles y
+     sont de nouveau accessibles depuis le 3 octobre 2026).
+     ==================================================================== */
+  var STYLE_DEFAUT = "glass";
+  document.documentElement.setAttribute("data-style", STYLE_DEFAUT);
+  (function(){
+    try{
+      var v = localStorage.getItem("carnet_pref_v");
+      var d = localStorage.getItem("carnet_dark");
+      // "auto" (ou rien) = suivre le réglage clair/sombre du système / du navigateur
+      var auto = (v !== "7" || d === null || d === "auto");
+      var sombre = auto ? window.matchMedia("(prefers-color-scheme: dark)").matches : (d === "1");
+      document.documentElement.toggleAttribute("data-dark", sombre);
+      /* Style et couleurs du dernier passage, mémorisés par le menu Apparence
+         (un jeu de couleurs par mode) : n'importe quel style s'affiche juste
+         dès le premier pixel, pas seulement celui écrit en dur dans le CSS. */
+      var st = localStorage.getItem("carnet_style_eff");
+      if(st) document.documentElement.setAttribute("data-style", st);
+      var vars = localStorage.getItem("carnet_vars_" + (sombre ? "1" : "0"));
+      if(st && vars) document.documentElement.setAttribute("style", vars);
+      if(localStorage.getItem("carnet_img") === "compact")
+        document.documentElement.setAttribute("data-img","compact");
+    }catch(e){}
+  })();
+</script>
+<style>
+  /* =====================================================================
+     COUCHE DE JETONS (design tokens)
+     ---------------------------------------------------------------------
+     Deux niveaux de personnalisation, tous deux pilotés depuis le menu
+     "Apparence" en bas de l'écran :
+
+       1. LE STYLE   -> attribut  <html data-style="glass|vintage|editorial">
+                        redéfinit la structure visuelle : polices, rayons,
+                        bordures, ombres, reflets, remplissages.
+       2. LA PALETTE -> variables de couleur posées en JS sur :root
+                        (chaque style embarque ses propres palettes).
+
+     Les règles de MISE EN PAGE (grilles, positions, tailles) ne dépendent
+     jamais du style : seule la peau change. Pour ajouter un style, il
+     suffit d'ajouter un bloc html[data-style="..."] plus bas et une entrée
+     dans le tableau STYLES du script.
+     ===================================================================== */
+  :root{
+    /* ---------- PALETTE (écrasée en JS par le sous-thème couleurs) ---------- */
+    --sky1:#8fd6ff; --sky2:#c4efff; --sky3:#dff6ec; --sky4:#eafce0; --sky5:#f2fbe8;
+    --ink:#0a3b3f; --ink-soft:#1c5f60; --line:rgba(13,95,82,.28);
+    --accent:#12a457; --accent-d:#0b8f4c; --warn:#cf7a2a;
+    --acc-l:#5cd889; --acc-glow:rgba(20,150,80,.72); --acc-line:rgba(18,164,87,.4); --acc-soft:rgba(18,164,87,.15);
+    --masthead:#0a4a44; --thumb-a:rgba(180,240,255,.45); --thumb-b:rgba(190,245,205,.4); --pickbar:rgba(220,244,252,.75);
+    --on-accent:#fff;
+
+    /* ---------- MISE EN PAGE (commune à tous les styles) ---------- */
+    --side-w:268px; --grid-min:216px; --grid-gap:22px;
+    --ease-pop:cubic-bezier(.34,1.56,.64,1);
+
+    /* ---------- POLICES ---------- */
+    --font-ui:"Titillium Web",system-ui,-apple-system,sans-serif;
+    --font-display:"Titillium Web",system-ui,-apple-system,sans-serif;
+    --font-body:"Newsreader",Georgia,serif;
+    --font-text:var(--font-ui);          /* corps de texte : prose, ingrédients, étapes */
+    --fs-body:16px; --lh-body:1.5;
+    --ls-label:.14em; --tt-label:uppercase; --fw-label:600;
+    --ls-title:.005em; --fw-title:700; --lh-title:1.15;
+    --font-note:var(--font-ui);          /* notes, encarts, texte en italique */
+
+    /* ---------- FOND DE PAGE ---------- */
+    --page-bg:linear-gradient(165deg,var(--sky1) 0%,var(--sky2) 30%,var(--sky3) 58%,var(--sky4) 82%,var(--sky5) 100%);
+    --page-attach:fixed;
+
+    /* ---------- FORMES ---------- */
+    --radius:16px; --card-radius:20px; --ctl-radius:14px; --pill:20px; --round:50%;
+
+    /* ---------- SURFACES & BORDURES ---------- */
+    --bd-w:1px; --bd:rgba(255,255,255,.72);
+    --bd-focus:#fff; --bd-on:rgba(255,255,255,.7);
+    --surface-side:rgba(255,255,255,.30);
+    --surface-card:rgba(255,255,255,.42);
+    --surface-ctl:rgba(255,255,255,.55);
+    --surface-panel:rgba(255,255,255,.42);
+    --surface-hi:#fff; --surface-hi-soft:rgba(255,255,255,.75);
+    --ink-a16:rgba(13,95,82,.16); --ink-a30:rgba(13,95,82,.3);   /* recalculés en JS */
+    --blur-side:blur(20px) saturate(175%);
+    --blur-card:blur(14px) saturate(160%);
+    --blur-bar:blur(12px) saturate(160%); --blur-rec:blur(12px);
+
+    /* ---------- OMBRES ---------- */
+    --sh-in:inset 0 1px 0 rgba(255,255,255,.9);
+    --sh-in-soft:inset 0 1px 0 rgba(255,255,255,.85);
+    --sh-field:inset 0 2px 5px rgba(40,120,130,.18),inset 0 1px 0 rgba(255,255,255,.9);
+    --sh-field-focus:inset 0 2px 5px rgba(40,120,130,.15),0 0 0 3px var(--acc-line);
+    --sh-card:0 12px 26px -16px rgba(0,70,90,.5),inset 0 1px 0 rgba(255,255,255,.85);
+    --sh-card-hov:0 26px 38px -20px rgba(0,70,90,.62),inset 0 1px 0 rgba(255,255,255,.95);
+    --sh-card-sm:0 10px 22px -14px rgba(0,70,90,.5),inset 0 1px 0 rgba(255,255,255,.85);
+    --sh-card-sm-hov:0 20px 30px -18px rgba(0,70,90,.6),inset 0 1px 0 rgba(255,255,255,.95);
+    --sh-hero:0 16px 32px -20px rgba(0,70,90,.5),inset 0 1px 0 rgba(255,255,255,.85);
+    --sh-bar:0 8px 20px -14px rgba(0,70,90,.5),inset 0 1px 0 rgba(255,255,255,.8);
+    --sh-pill:inset 0 1px 0 rgba(255,255,255,.9),0 2px 5px -2px rgba(0,60,90,.25);
+    --sh-pill-on:inset 0 1px 0 rgba(255,255,255,.75),0 3px 9px -3px var(--acc-glow);
+    --sh-acc:0 9px 18px -6px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.9);
+    --sh-acc-hov:0 12px 22px -6px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.9);
+    --sh-acc-press:0 5px 10px -5px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.9);
+    --sh-num:0 3px 8px -3px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.6);
+    --sh-picked:0 14px 28px -14px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.9);
+
+    /* ---------- REMPLISSAGES D'ACCENT ---------- */
+    --accent-fill:linear-gradient(var(--acc-l) 0%,var(--accent) 50%,var(--accent-d) 100%);
+    --accent-fill-2:linear-gradient(var(--acc-l),var(--accent-d));
+    --on-accent-sh:0 -1px 0 rgba(0,70,50,.4);
+
+    /* ---------- EFFETS (0 = neutralisé) ---------- */
+    --gloss:1;
+    --title-sh:0 1px 2px rgba(255,255,255,.75);
+    --label-sh:0 1px 1px rgba(255,255,255,.6);
+    --lift:-1px;
+    --card-lift:translateY(-8px) scale(1.03);
+    --card-lift-press:translateY(-4px) scale(1.01);
+    --card-lift-sm:translateY(-5px);
+    --press:scale(.93);
+
+    /* ---------- DÉTAILS ---------- */
+    --thumb-bg:linear-gradient(160deg,var(--thumb-a),var(--thumb-b));
+    --thumb-ratio:4/3;
+    --li-border:1px dotted var(--line);
+    --sec-border:2px solid var(--acc-line);
+    --ph-color:rgba(13,95,82,.78);   /* recalculé en JS depuis --ink */
+    --ph-weight:600; --ph-tt:uppercase; --ph-ls:.04em;
+    --badge-radius:12px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{color:var(--ink);font-family:var(--font-text);
+    font-size:var(--fs-body);line-height:var(--lh-body);-webkit-font-smoothing:antialiased;min-height:100vh;
+    background:var(--page-bg);background-attachment:var(--page-attach);}
+  .label{font-family:var(--font-ui);text-transform:var(--tt-label);letter-spacing:var(--ls-label);font-weight:var(--fw-label);}
+
+  .wrap{display:grid;grid-template-columns:var(--side-w) 1fr;min-height:100vh;position:relative;}
+
+  .resize-handle{position:fixed;top:0;bottom:0;left:var(--side-w);width:12px;margin-left:-6px;z-index:30;
+    cursor:col-resize;display:flex;align-items:center;justify-content:center;touch-action:none;}
+  .resize-handle::before{content:"";width:3px;height:48px;border-radius:3px;background:var(--line);
+    box-shadow:var(--sh-in);transition:background .15s,height .15s,width .15s;}
+  .resize-handle:hover::before,.resize-handle.drag::before{background:var(--accent);height:74px;width:4px;}
+
+  .side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 20px 76px;
+    background:var(--surface-side);border-right:var(--bd-w) solid var(--bd);
+    backdrop-filter:var(--blur-side);-webkit-backdrop-filter:var(--blur-side);
+    box-shadow:var(--sh-in-soft);}
+  .side::before{content:"";position:absolute;top:0;left:0;right:0;height:120px;pointer-events:none;opacity:var(--gloss);
+    background:linear-gradient(rgba(255,255,255,.4),rgba(255,255,255,0));}
+  .masthead{font-family:var(--font-display);font-weight:700;font-size:26px;line-height:.95;margin:0;
+    color:var(--masthead);text-shadow:var(--title-sh);position:relative;}
+  .masthead small{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    color:var(--ink-soft);margin-top:7px;}
+  .rule{height:2px;margin:16px 0;border-radius:2px;
+    background:linear-gradient(90deg,var(--acc-line),var(--acc-soft),transparent);}
+
+  .search-wrap{position:relative;}
+  .search{width:100%;padding:10px 34px 10px 13px;border:var(--bd-w) solid var(--bd);border-radius:var(--radius);
+    background:var(--surface-ctl);font-family:var(--font-ui);font-size:15px;color:var(--ink);font-weight:600;
+    box-shadow:var(--sh-field);}
+  .search::placeholder{color:var(--ink-soft);opacity:.75;font-weight:400;}
+  .search:focus{outline:none;border-color:var(--bd-focus);box-shadow:var(--sh-field-focus);}
+  .search-clear{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;border:none;
+    border-radius:var(--round);background:var(--ink-a16);color:var(--ink-soft);font-size:14px;line-height:1;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:transform .14s,background .15s;padding:0;}
+  .search-clear:hover{background:var(--ink-a30);transform:translateY(-50%) scale(1.14);}
+
+  .facet{margin-top:20px;}
+  .facet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+  .facet-head .label{font-size:11px;color:var(--ink-soft);text-shadow:var(--label-sh);}
+  .modebtn{font-family:var(--font-ui);font-size:10.5px;font-weight:700;letter-spacing:.08em;
+    border:var(--bd-w) solid var(--bd);background:var(--surface-ctl);color:var(--ink-soft);
+    padding:2px 10px;border-radius:var(--pill);cursor:pointer;line-height:1.5;transition:transform .12s,background .15s,color .15s;
+    box-shadow:var(--sh-in);}
+  .modebtn:hover{background:var(--surface-hi);transform:translateY(var(--lift));}
+  .modebtn:active{transform:scale(.94);}
+  .modebtn.et{color:var(--on-accent);border-color:transparent;text-shadow:var(--on-accent-sh);
+    background:var(--accent-fill-2);box-shadow:var(--sh-pill-on);}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{font-family:var(--font-ui);font-size:12.5px;font-weight:600;letter-spacing:.01em;
+    padding:6px 12px;border-radius:var(--pill);border:var(--bd-w) solid var(--bd);background:var(--surface-ctl);
+    color:var(--ink-soft);cursor:pointer;user-select:none;line-height:1.4;
+    box-shadow:var(--sh-pill);
+    transition:transform .14s var(--ease-pop),background .18s,color .18s,box-shadow .18s;}
+  .chip:hover{transform:translateY(var(--lift));background:var(--surface-hi-soft);}
+  .chip:active{transform:var(--press);}
+  .chip.on{color:var(--on-accent);text-shadow:var(--on-accent-sh);border-color:var(--bd-on);
+    background:var(--accent-fill);box-shadow:var(--sh-pill-on);}
+  .chip .n{opacity:.6;margin-left:5px;font-weight:700;}
+  .chip.on .n{opacity:.85;}
+
+  .filter-toggle{display:none;width:100%;margin-top:16px;padding:10px;border-radius:var(--radius);
+    border:var(--bd-w) solid var(--bd);background:var(--surface-ctl);color:var(--ink);font-weight:700;
+    font-family:var(--font-ui);font-size:13px;cursor:pointer;box-shadow:var(--sh-in);}
+
+  .main{padding:28px 38px 90px;}
+  .topbar{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px;min-height:22px;}
+  .count-h{font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-soft);text-shadow:var(--label-sh);}
+  .clear{background:var(--surface-ctl);border:var(--bd-w) solid var(--bd);color:var(--accent-d);cursor:pointer;
+    font-size:12px;font-family:var(--font-ui);font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:4px 11px;border-radius:var(--pill);box-shadow:var(--sh-in);transition:transform .12s,background .15s;}
+  .clear:hover{background:var(--surface-hi);transform:translateY(var(--lift));}
+  .clear:active{transform:scale(.95);}
+  .active-tags{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 22px;}
+  .atag{font-family:var(--font-ui);font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+    color:var(--on-accent);text-shadow:var(--on-accent-sh);padding:4px 6px 4px 11px;border-radius:var(--pill);
+    display:inline-flex;align-items:center;gap:7px;background:var(--accent-fill-2);
+    box-shadow:var(--sh-pill-on);}
+  .atag button{background:rgba(255,255,255,.25);border:none;color:var(--on-accent);cursor:pointer;font-size:13px;line-height:1;
+    width:17px;height:17px;border-radius:var(--round);padding:0;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+  .atag button:hover{background:rgba(255,255,255,.45);}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--grid-min),1fr));gap:var(--grid-gap);}
+  .card{position:relative;border-radius:var(--card-radius);overflow:hidden;cursor:pointer;
+    display:flex;flex-direction:column;background:var(--surface-card);border:var(--bd-w) solid var(--bd);
+    backdrop-filter:var(--blur-card);-webkit-backdrop-filter:var(--blur-card);
+    box-shadow:var(--sh-card);
+    transform-origin:center bottom;will-change:transform;animation:cardPop .4s backwards;
+    transition:transform .3s cubic-bezier(.34,1.6,.5,1),box-shadow .3s,background .2s,color .2s;}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:46%;z-index:2;pointer-events:none;opacity:var(--gloss);
+    background:linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,0));}
+  .card:hover{transform:var(--card-lift);box-shadow:var(--sh-card-hov);}
+  .card:active{transform:var(--card-lift-press);}
+  .card .shine{position:absolute;top:0;bottom:0;left:-60%;width:45%;z-index:3;pointer-events:none;opacity:var(--gloss);
+    background:linear-gradient(105deg,transparent,rgba(255,255,255,.24),transparent);transform:skewX(-18deg);}
+  .card:hover .shine{animation:sweep .7s ease .05s;}
+  .thumb{aspect-ratio:var(--thumb-ratio);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;
+    background:var(--thumb-bg);border-bottom:var(--bd-w) solid var(--bd);}
+  .thumb::after{content:"";position:absolute;top:0;left:0;right:0;height:52%;pointer-events:none;opacity:var(--gloss);
+    background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,0));}
+  .webbadge{position:absolute;top:8px;right:8px;z-index:4;background:var(--ink);color:var(--sky5);
+    font-family:var(--font-ui);font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    padding:3px 7px;border-radius:var(--badge-radius);line-height:1.4;opacity:.78;
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s cubic-bezier(.34,1.4,.5,1);}
+  .card:hover .thumb img{transform:scale(1.08);}
+  .thumb .ph{font-family:var(--font-display);font-weight:var(--ph-weight);font-size:13px;letter-spacing:var(--ph-ls);
+    text-transform:var(--ph-tt);color:var(--ph-color);text-align:center;padding:16px;line-height:1.3;}
+  .card-body{padding:12px 15px 15px;position:relative;z-index:1;}
+  .card-tags{font-size:10.5px;color:var(--accent-d);font-weight:700;letter-spacing:.04em;}
+  .card-title{font-family:var(--font-display);font-size:18px;font-weight:var(--fw-title);line-height:var(--lh-title);
+    letter-spacing:var(--ls-title);margin:5px 0 0;color:var(--ink);}
+  .card-meta{font-size:12px;color:var(--ink-soft);margin-top:7px;font-weight:600;letter-spacing:.02em;}
+  .empty{color:var(--ink-soft);font-family:var(--font-note);font-style:italic;padding:30px 0;}
+  .group-h{grid-column:1/-1;margin:28px 0 2px;font-family:var(--font-ui);font-size:11.5px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);text-shadow:var(--label-sh);
+    display:flex;align-items:baseline;gap:10px;padding-bottom:6px;border-bottom:var(--sec-border);}
+  .group-h:first-child{margin-top:2px;}
+  .group-n{font-size:11px;font-weight:700;opacity:.55;}
+
+  .detail{display:none;max-width:1040px;}
+  .back{display:inline-flex;align-items:center;gap:6px;background:var(--surface-ctl);border:var(--bd-w) solid var(--bd);
+    cursor:pointer;color:var(--accent-d);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:var(--ctl-radius);margin-bottom:18px;
+    font-family:var(--font-ui);letter-spacing:.03em;text-transform:uppercase;
+    box-shadow:var(--sh-in);transition:transform .14s,background .15s;}
+  .back:hover{background:var(--surface-hi);transform:translateX(-2px);}
+  .d-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+  .d-tag{font-family:var(--font-ui);font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    border:var(--bd-w) solid var(--bd);background:var(--surface-panel);color:var(--accent-d);padding:3px 10px;border-radius:var(--pill);
+    box-shadow:var(--sh-in);}
+  .d-title{font-family:var(--font-display);font-weight:var(--fw-title);letter-spacing:var(--ls-title);
+    font-size:34px;line-height:1.02;margin:4px 0 16px;color:var(--ink);text-shadow:var(--title-sh);}
+  .d-hero{border-radius:var(--card-radius);overflow:hidden;margin-bottom:20px;line-height:0;position:relative;
+    background:var(--surface-panel);border:var(--bd-w) solid var(--bd);
+    box-shadow:var(--sh-hero);}
+  .d-hero .webbadge{top:10px;right:10px;font-size:10px;padding:3px 9px;cursor:help;}
+  .d-hero img{display:block;width:100%;height:auto;max-height:520px;object-fit:cover;object-position:center;}
+  .d-hero .ph{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:var(--ph-weight);font-size:22px;letter-spacing:var(--ph-ls);
+    text-transform:var(--ph-tt);color:var(--ph-color);line-height:1.3;text-align:center;padding:24px;}
+  .d-meta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px;}
+  .d-meta div{font-size:11px;background:var(--surface-panel);border:var(--bd-w) solid var(--bd);border-radius:var(--ctl-radius);
+    padding:8px 15px;box-shadow:var(--sh-in);}
+  .d-meta .label{font-size:9.5px;color:var(--ink-soft);display:block;margin-bottom:2px;}
+  .d-meta b{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.01em;color:var(--ink);}
+
+  .d-cols{display:grid;grid-template-columns:312px 1fr;gap:48px;}
+  .sec-h{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:var(--sec-border);padding-bottom:6px;margin-bottom:14px;}
+  .serve{display:inline-flex;align-items:center;border:var(--bd-w) solid var(--bd);border-radius:var(--ctl-radius);overflow:hidden;
+    width:fit-content;margin-bottom:18px;background:var(--surface-panel);box-shadow:var(--sh-in);}
+  .serve button{width:38px;height:38px;border:none;background:transparent;cursor:pointer;
+    font-family:var(--font-ui);font-size:20px;color:var(--accent-d);line-height:1;transition:background .15s,transform .1s;}
+  .serve button:hover{background:var(--acc-soft);}
+  .serve button:active{transform:scale(.85);}
+  .serve .val{min-width:100px;text-align:center;font-family:var(--font-ui);font-weight:600;
+    font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);}
+  .serve .val b{font-size:18px;display:inline-block;transition:transform .18s cubic-bezier(.34,1.7,.5,1);}
+  .serve .val b.bump{transform:scale(1.35);}
+
+  ul.ing{list-style:none;margin:0;padding:0;}
+  ul.ing li{padding:8px 0;border-bottom:var(--li-border);font-size:15.5px;}
+  ul.ing .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline;}
+  ul.ing .q{font-family:var(--font-ui);font-weight:700;white-space:nowrap;text-align:right;
+    display:flex;align-items:center;gap:6px;justify-content:flex-end;color:var(--ink);transition:color .2s;}
+  ul.ing .q.flash{color:var(--accent);}
+  .wbtn{border:1px solid var(--warn);color:var(--warn);background:var(--surface-ctl);width:18px;height:18px;border-radius:var(--round);
+    font-family:var(--font-ui);font-weight:700;font-size:11px;line-height:1;cursor:pointer;padding:0;
+    display:inline-flex;align-items:center;justify-content:center;transition:background .15s,color .15s,transform .12s;}
+  .wbtn:hover{background:var(--warn);color:var(--sky5);transform:scale(1.12);}
+  .wmsg{display:none;font-family:var(--font-note);font-style:italic;font-size:12.5px;color:var(--warn);
+    margin-top:5px;line-height:1.35;font-weight:400;text-transform:none;letter-spacing:0;}
+  ul.ing li.open .wmsg{display:block;}
+  ul.ing .prep{color:var(--ink-soft);font-style:italic;font-size:13.5px;}
+
+  ol.steps{margin:0;padding:0;counter-reset:s;list-style:none;}
+  ol.steps li{counter-increment:s;position:relative;padding:0 0 18px 46px;font-size:15.5px;line-height:1.5;}
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:30px;height:30px;border-radius:var(--round);
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-ui);font-weight:700;font-size:15px;
+    color:var(--on-accent);background:var(--accent-fill-2);
+    box-shadow:var(--sh-num);}
+  .notes{margin-top:24px;padding:14px 18px;border-radius:var(--card-radius);
+    background:var(--surface-panel);border:var(--bd-w) solid var(--bd);border-left:4px solid var(--accent);
+    font-family:var(--font-note);font-size:14.5px;font-style:italic;color:var(--ink-soft);box-shadow:var(--sh-in-soft);}
+
+  /* ---- Planificateur de courses ---- */
+  .plan-btn{position:relative;width:100%;margin:16px 0 4px;padding:12px;border:var(--bd-w) solid var(--bd);
+    border-radius:var(--radius);overflow:hidden;color:var(--on-accent);font-family:var(--font-ui);font-weight:700;font-size:12.5px;
+    letter-spacing:.04em;text-transform:uppercase;cursor:pointer;text-shadow:var(--on-accent-sh);
+    background:var(--accent-fill);
+    box-shadow:var(--sh-acc);
+    transition:transform .12s var(--ease-pop),box-shadow .12s;}
+  .plan-btn::before{content:"";position:absolute;top:1px;left:3px;right:3px;height:45%;pointer-events:none;opacity:var(--gloss);
+    border-radius:14px 14px 40px 40px/14px 14px 22px 22px;
+    background:linear-gradient(rgba(255,255,255,.85),rgba(255,255,255,.08));}
+  .plan-btn:hover{transform:translateY(var(--lift));box-shadow:var(--sh-acc-hov);}
+  .plan-btn:active{transform:translateY(1px) scale(.98);box-shadow:var(--sh-acc-press);}
+  .plan-btn.ghost{background:var(--surface-ctl);color:var(--accent-d);text-shadow:none;border-color:var(--bd);}
+  .plan-btn.ghost::before{opacity:calc(var(--gloss) * .5);}
+  .plan-btn.ghost:hover{background:var(--surface-hi);}
+
+  .planner{display:none;max-width:1040px;}
+  .pl-title{font-family:var(--font-display);font-weight:var(--fw-title);letter-spacing:var(--ls-title);
+    font-size:32px;line-height:1.02;margin:4px 0 6px;color:var(--ink);text-shadow:var(--title-sh);}
+  .pl-lead{color:var(--ink-soft);font-size:15.5px;margin:0 0 22px;max-width:640px;}
+  .pl-step{font-family:var(--font-ui);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent-d);border-bottom:var(--sec-border);padding-bottom:6px;margin:26px 0 14px;}
+  .pl-facets .facet{margin-top:14px;}
+  .pl-facets .facet-head .label{font-size:11px;color:var(--ink-soft);}
+  .pl-controls{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-end;margin:20px 0 4px;}
+  .pl-field{display:flex;flex-direction:column;gap:7px;}
+  .pl-field .label{font-size:11px;color:var(--ink-soft);}
+  .stepper{display:inline-flex;align-items:center;border:var(--bd-w) solid var(--bd);border-radius:var(--ctl-radius);overflow:hidden;
+    width:fit-content;background:var(--surface-panel);box-shadow:var(--sh-in);}
+  .stepper button{width:36px;height:36px;border:none;background:transparent;cursor:pointer;
+    font-family:var(--font-ui);font-size:20px;color:var(--accent-d);line-height:1;transition:background .15s,transform .1s;}
+  .stepper button:hover{background:var(--acc-soft);}
+  .stepper button:active{transform:scale(.85);}
+  .stepper .val{min-width:54px;text-align:center;font-family:var(--font-ui);font-weight:700;font-size:17px;color:var(--ink);}
+  .pl-go{position:relative;padding:12px 24px;border:var(--bd-w) solid var(--bd);border-radius:var(--radius);overflow:hidden;
+    color:var(--on-accent);font-family:var(--font-ui);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+    cursor:pointer;text-shadow:var(--on-accent-sh);
+    background:var(--accent-fill);
+    box-shadow:var(--sh-acc);
+    transition:transform .12s var(--ease-pop),box-shadow .12s;}
+  .pl-go:hover{transform:translateY(var(--lift));box-shadow:var(--sh-acc-hov);}
+  .pl-go:active{transform:translateY(1px) scale(.98);}
+
+  .pl-resbar{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:4px;}
+  .pl-note{color:var(--warn);font-family:var(--font-note);font-style:italic;font-size:14px;margin:2px 0 0;}
+  .pl-recipes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin:8px 0 4px;}
+  .pl-rec{position:relative;border-radius:var(--card-radius);overflow:hidden;padding:12px 15px;display:flex;flex-direction:column;gap:6px;
+    background:var(--surface-card);border:var(--bd-w) solid var(--bd);backdrop-filter:var(--blur-rec);-webkit-backdrop-filter:var(--blur-rec);
+    box-shadow:var(--sh-card-sm);
+    transition:transform .25s cubic-bezier(.34,1.5,.5,1),box-shadow .25s;}
+  .pl-rec::before{content:"";position:absolute;top:0;left:0;right:0;height:40%;pointer-events:none;opacity:var(--gloss);
+    background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,0));}
+  .pl-rec:hover{transform:var(--card-lift-sm);box-shadow:var(--sh-card-sm-hov);}
+  .pl-rec .pl-rtags{font-family:var(--font-ui);font-size:10px;font-weight:700;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--accent-d);position:relative;z-index:1;}
+  .pl-rec h4{font-family:var(--font-display);font-size:17px;font-weight:var(--fw-title);margin:0;line-height:1.15;
+    cursor:pointer;color:var(--ink);position:relative;z-index:1;}
+  .pl-rec h4:hover{color:var(--accent-d);}
+  .pl-rec .pl-rmeta{font-family:var(--font-ui);font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--ink-soft);position:relative;z-index:1;}
+  .pl-rec-actions{display:flex;gap:12px;margin-top:2px;position:relative;z-index:1;}
+  .pl-rec-actions button{background:none;border:none;padding:0;cursor:pointer;color:var(--accent-d);
+    font-family:var(--font-ui);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;transition:color .15s;}
+  .pl-rec-actions button:hover{color:var(--accent);text-decoration:underline;}
+
+  .shop{margin-top:8px;}
+  .shop-sec{margin-bottom:22px;}
+  .shop-sec h4{font-family:var(--font-ui);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-soft);border-bottom:var(--bd-w) solid var(--line);padding-bottom:5px;margin:0 0 8px;}
+  ul.shop-list{list-style:none;margin:0;padding:0;column-gap:40px;}
+  ul.shop-list li{padding:6px 0;border-bottom:var(--li-border);display:flex;justify-content:space-between;
+    gap:14px;align-items:baseline;font-size:15px;break-inside:avoid;}
+  ul.shop-list .q{font-family:var(--font-ui);font-weight:700;white-space:nowrap;text-align:right;color:var(--ink);}
+  ul.shop-list .src{opacity:.55;margin-left:6px;font-size:11px;}
+  ul.shop-plain li{justify-content:flex-start;}
+  .rayon{break-inside:avoid;margin-bottom:16px;}
+  .rayon h5{font-family:var(--font-ui);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent-d);margin:0 0 5px;border-bottom:var(--bd-w) solid var(--line);padding-bottom:4px;}
+  @media(min-width:900px){.shop-cols{columns:2;column-gap:40px;}}
+
+  /* ---- Sélecteur de recettes (choix manuel / remplacement) ---- */
+  .pl-go.ghost{background:var(--surface-ctl);color:var(--accent-d);text-shadow:none;border-color:var(--bd);
+    box-shadow:var(--sh-pill);}
+  .pl-go.ghost:hover{background:var(--surface-hi);}
+  .pl-go[disabled]{opacity:.45;cursor:default;box-shadow:none;}
+  .pl-go[disabled]:hover{transform:none;box-shadow:none;}
+  .pl-or{font-family:var(--font-body);font-style:italic;color:var(--ink-soft);font-size:15px;margin:14px 0;}
+
+  .pick-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    position:sticky;top:0;z-index:12;padding:12px 10px;margin:0 -10px 16px;border-radius:var(--radius);
+    background:var(--pickbar);backdrop-filter:var(--blur-bar);-webkit-backdrop-filter:var(--blur-bar);
+    box-shadow:var(--sh-bar);}
+  .pick-foot{display:flex;align-items:center;gap:14px;}
+  .pick-facets{display:flex;flex-wrap:wrap;gap:4px 26px;margin:0 0 20px;}
+  .pick-facets .facet{margin-top:0;}
+  .pick-grid{grid-template-columns:repeat(auto-fill,minmax(188px,1fr));}
+  .card.pick .card-title{font-size:16px;}
+  .card.pick.picked{outline:2.5px solid var(--accent);outline-offset:-1px;
+    box-shadow:var(--sh-picked);}
+  .pickmark{position:absolute;top:8px;left:8px;z-index:4;width:26px;height:26px;border-radius:var(--round);
+    display:flex;align-items:center;justify-content:center;color:var(--on-accent);font-weight:700;font-size:15px;
+    background:var(--accent-fill-2);box-shadow:var(--sh-num);}
+
+  /* ---- fluidité : entrée des vues ---- */
+  .view-anim{animation:viewIn .34s cubic-bezier(.22,.9,.31,1);}
+  @keyframes viewIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  @keyframes cardPop{from{opacity:0;transform:translateY(10px) scale(.97);}to{opacity:1;transform:none;}}
+  @keyframes sweep{from{left:-60%;}to{left:130%;}}
+
+  @media(max-width:780px){
+    .wrap{grid-template-columns:1fr;}
+    .resize-handle{display:none;}
+    .side{position:static;height:auto;border-right:none;border-bottom:var(--bd-w) solid var(--bd);}
+    .filter-toggle{display:block;}
+    #facets.collapsed{display:none;}
+    .main{padding:22px 18px 60px;}
+    .d-cols{grid-template-columns:1fr;gap:30px;}
+    .d-title{font-size:27px;}
+    .pl-title{font-size:25px;}
+    .pl-controls{gap:18px;}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important;}
+  }
+
+  /* --- en planification de courses, la colonne de gauche ne doit plus
+         proposer les filtres de l'accueil : le planificateur a les siens --- */
+  html[data-view="planner"] #facets,
+  html[data-view="planner"] .search-wrap,
+  html[data-view="planner"] #filterToggle{display:none;}
+
+  /* =====================================================================
+     STYLE 3 — ÉDITORIAL
+     Le carnet lu comme un livre : papier crème uni, serif de labeur pour le
+     texte, display à empattements pour les titres, sans-serif réservé aux
+     mentions techniques. Aucune carte, aucune ombre, aucun aplat : la
+     hiérarchie tient aux filets fins, aux capitales espacées et au blanc.
+     Une recette sans photo n'est pas un trou — c'est une notice.
+     ===================================================================== */
+  html[data-style="editorial"]{
+    --font-ui:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    --font-display:"Playfair Display",Georgia,"Times New Roman",serif;
+    --font-body:"Newsreader",Georgia,serif;
+    --font-text:"Newsreader",Georgia,serif;
+    --font-note:"Newsreader",Georgia,serif;
+    --fs-body:17px; --lh-body:1.62;
+    --ls-label:.18em; --fw-label:600;
+    --ls-title:-.01em; --fw-title:600; --lh-title:1.2;
+
+    --page-bg:var(--sky5); --page-attach:scroll;
+
+    --radius:2px; --card-radius:2px; --ctl-radius:2px; --pill:2px; --round:50%;
+
+    --bd-w:1px; --bd:var(--line);
+    --bd-focus:var(--accent); --bd-on:transparent;
+    --surface-side:var(--sky3);
+    --surface-card:transparent;
+    --surface-ctl:transparent;
+    --surface-panel:transparent;
+    --surface-hi:var(--acc-soft); --surface-hi-soft:var(--acc-soft);
+    --blur-side:none; --blur-card:none; --blur-bar:none; --blur-rec:none;
+
+    --sh-in:none; --sh-in-soft:none; --sh-field:none;
+    --sh-field-focus:none;
+    --sh-card:none; --sh-card-hov:none; --sh-card-sm:none; --sh-card-sm-hov:none;
+    --sh-hero:none; --sh-pill:none; --sh-pill-on:none;
+    --sh-acc:none; --sh-acc-hov:none; --sh-acc-press:none; --sh-num:none;
+    --sh-picked:none;
+    --sh-bar:0 10px 34px -20px rgba(40,30,15,.5);   /* le panneau flotte : ombre discrète */
+
+    --accent-fill:var(--accent);
+    --accent-fill-2:var(--accent);
+    --on-accent-sh:none;
+
+    --gloss:0;
+    --title-sh:none; --label-sh:none;
+    --lift:0px;
+    --card-lift:none; --card-lift-press:none; --card-lift-sm:none;
+    --press:none;
+
+    --thumb-bg:var(--acc-soft);
+    --thumb-ratio:3/2;
+    --li-border:1px solid var(--line);
+    --sec-border:1px solid var(--ink);
+    --ph-weight:400; --ph-tt:none; --ph-ls:0;
+    --badge-radius:2px;
+    --grid-min:228px; --grid-gap:36px;
+  }
+  /* --- pas de carte : une vignette, un titre, un filet --- */
+  html[data-style="editorial"] .card{border:none;background:none;overflow:visible;}
+  html[data-style="editorial"] .thumb{border:1px solid var(--line);}
+  html[data-style="editorial"] .card-body{padding:11px 0 0;}
+  html[data-style="editorial"] .card-title{font-size:21px;margin-top:4px;}
+  html[data-style="editorial"] .card:hover .card-title{text-decoration:underline;
+    text-underline-offset:4px;text-decoration-thickness:1px;}
+  html[data-style="editorial"] .card:hover .thumb img{transform:none;}
+  html[data-style="editorial"] .card-tags{font-family:var(--font-ui);font-size:9.5px;
+    letter-spacing:.16em;text-transform:uppercase;font-weight:600;}
+  html[data-style="editorial"] .card-meta{font-family:var(--font-ui);font-size:11px;
+    letter-spacing:.04em;font-weight:400;}
+  /* une recette sans photo : un cartouche en italique, pas un placeholder criard */
+  html[data-style="editorial"] .thumb .ph,
+  html[data-style="editorial"] .d-hero .ph{font-family:var(--font-body);font-style:italic;}
+  html[data-style="editorial"] .thumb .ph{font-size:15px;}
+
+  /* --- colonne de gauche : papier légèrement plus soutenu, filet fin --- */
+  html[data-style="editorial"] .side{border-right:1px solid var(--line);}
+  html[data-style="editorial"] .masthead{font-family:var(--font-display);font-size:34px;font-weight:500;}
+  html[data-style="editorial"] .masthead small{font-family:var(--font-ui);letter-spacing:.24em;font-size:9px;}
+  html[data-style="editorial"] .rule{background:var(--ink);height:1px;border-radius:0;margin:18px 0;}
+  html[data-style="editorial"] .search{border:none;border-bottom:1px solid var(--line);
+    border-radius:0;padding-left:2px;font-family:var(--font-body);font-weight:400;font-size:16px;}
+  html[data-style="editorial"] .search:focus{border-bottom-color:var(--accent);}
+  html[data-style="editorial"] .facet-head{border-bottom:1px solid var(--line);padding-bottom:5px;}
+
+  /* --- titres et sections --- */
+  html[data-style="editorial"] .d-title{font-size:46px;line-height:1.06;margin:6px 0 20px;}
+  html[data-style="editorial"] .pl-title{font-size:40px;line-height:1.06;}
+  html[data-style="editorial"] .group-h{font-family:var(--font-ui);font-size:10px;letter-spacing:.22em;}
+  html[data-style="editorial"] .sec-h,
+  html[data-style="editorial"] .pl-step{letter-spacing:.2em;font-size:10px;color:var(--ink);}
+  html[data-style="editorial"] .pl-lead,
+  html[data-style="editorial"] .pl-or{font-size:17px;}
+
+  /* --- étapes : un chiffre à empattements, sans pastille --- */
+  html[data-style="editorial"] ol.steps li{padding-left:52px;font-size:16.5px;padding-bottom:20px;}
+  html[data-style="editorial"] ol.steps li::before{background:none;box-shadow:none;color:var(--accent);
+    font-family:var(--font-display);font-size:27px;font-weight:400;width:38px;height:auto;
+    top:-6px;justify-content:flex-start;}
+  html[data-style="editorial"] ul.ing li{font-size:16.5px;}
+  html[data-style="editorial"] ul.ing .q,
+  html[data-style="editorial"] ul.shop-list .q{font-family:var(--font-body);font-weight:600;}
+  html[data-style="editorial"] .notes{border:none;border-left:2px solid var(--accent);
+    padding:2px 0 2px 18px;background:none;font-size:16px;}
+  html[data-style="editorial"] .d-meta div{border:none;border-left:1px solid var(--line);
+    border-radius:0;padding:2px 0 2px 14px;}
+  html[data-style="editorial"] .d-meta{gap:26px;}
+
+  /* --- surfaces flottantes : opaques, sinon illisibles sur le contenu --- */
+  html[data-style="editorial"] .pick-bar{background:var(--sky5);border-bottom:1px solid var(--line);}
+  html[data-style="editorial"] .themebar,
+  html[data-style="editorial"] .appr-btn{background:var(--sky5);border:1px solid var(--line);}
+  html[data-style="editorial"] .appr-btn[aria-expanded="true"]{background:var(--accent);border-color:var(--accent);}
+  /* survol : on repose TOUJOURS la couleur du texte avec le fond (sinon le texte disparaît sur le fond de survol) */
+  html[data-style="editorial"] .chip:not(.on):hover,
+  html[data-style="editorial"] .modebtn:not(.et):hover,
+  html[data-style="editorial"] .sbtn:not(.on):hover,
+  html[data-style="editorial"] .clear:hover,
+  html[data-style="editorial"] .back:hover{background:var(--acc-soft);color:var(--ink);}
+  html[data-style="editorial"] .chip.on:hover,
+  html[data-style="editorial"] .modebtn.et:hover,
+  html[data-style="editorial"] .sbtn.on:hover{background:var(--accent-d);}
+  html[data-style="editorial"] .back:hover{transform:none;}
+
+  /* =====================================================================
+     STYLE 5 — VINTAGE IMPRIMÉ
+     La fiche de cuisine des années 50-70, imprimée en DEUX ENCRES sur papier
+     crème : une encre sombre pour le texte, une couleur d'appoint pour tout
+     le reste. Papier légèrement inégal (dégradés très faibles, pas de motif
+     répété qui moirerait à l'écran). Filets doubles, pointillés de conduite,
+     capitales espacées. Les grands titres portent un léger décalage de la
+     seconde encre — le défaut de repérage des presses bon marché.
+     Une recette sans photo y est normale : ces livres étaient illustrés au
+     trait, pas photographiés.
+     ===================================================================== */
+  html[data-style="vintage"]{
+    --font-ui:"Zilla Slab",Rockwell,Georgia,serif;
+    --font-display:"Zilla Slab",Rockwell,Georgia,serif;
+    --font-body:"Zilla Slab",Rockwell,Georgia,serif;
+    --font-text:"Zilla Slab",Rockwell,Georgia,serif;
+    --font-note:"Zilla Slab",Rockwell,Georgia,serif;
+    --fs-body:16px; --lh-body:1.58;
+    --ls-label:.16em; --fw-label:600;
+    --ls-title:0; --fw-title:600; --lh-title:1.14;
+
+    --page-bg:radial-gradient(120% 80% at 18% 0%,rgba(90,60,20,.05),transparent 58%),
+              radial-gradient(100% 70% at 88% 100%,rgba(90,60,20,.045),transparent 55%),
+              var(--sky3);
+    --page-attach:scroll;
+
+    --radius:3px; --card-radius:3px; --ctl-radius:3px; --pill:3px; --round:50%;
+
+    --bd-w:1px; --bd:var(--line);
+    --bd-focus:var(--accent); --bd-on:var(--accent);
+    --surface-side:var(--sky2);
+    --surface-card:var(--sky5);
+    --surface-ctl:var(--sky5);
+    --surface-panel:var(--sky5);
+    --surface-hi:var(--acc-soft); --surface-hi-soft:var(--acc-soft);
+    --blur-side:none; --blur-card:none; --blur-bar:none; --blur-rec:none;
+
+    --sh-in:none; --sh-in-soft:none; --sh-field:none;
+    --sh-field-focus:0 0 0 2px var(--acc-line);
+    --sh-card:3px 3px 0 var(--acc-soft);   --sh-card-hov:5px 5px 0 var(--acc-line);
+    --sh-card-sm:2px 2px 0 var(--acc-soft);--sh-card-sm-hov:4px 4px 0 var(--acc-line);
+    --sh-hero:4px 4px 0 var(--acc-soft);   --sh-bar:4px 4px 0 var(--acc-soft);
+    --sh-pill:none;                        --sh-pill-on:none;
+    --sh-acc:2px 2px 0 var(--acc-soft);    --sh-acc-hov:3px 3px 0 var(--acc-line);
+    --sh-acc-press:1px 1px 0 var(--acc-soft); --sh-num:none;
+    --sh-picked:4px 4px 0 var(--accent);
+
+    --accent-fill:var(--accent);
+    --accent-fill-2:var(--accent);
+    --on-accent-sh:none;
+
+    --gloss:0;
+    --title-sh:none; --label-sh:none;
+    --lift:-1px;
+    --card-lift:translate(-2px,-2px);
+    --card-lift-press:translate(1px,1px);
+    --card-lift-sm:translate(-2px,-2px);
+    --press:scale(.97);
+
+    --thumb-bg:var(--sky4);
+    --li-border:1px dotted var(--line);
+    --sec-border:3px double var(--ink);
+    --ph-weight:400; --ph-tt:none; --ph-ls:0;
+    --badge-radius:3px;
+    --grid-min:224px; --grid-gap:28px;
+  }
+  /* défaut de repérage : la seconde encre décalée sous les grands titres */
+  html[data-style="vintage"] .masthead,
+  html[data-style="vintage"] .d-title,
+  html[data-style="vintage"] .pl-title{font-family:"Alfa Slab One","Zilla Slab",Rockwell,Georgia,serif;
+    font-weight:400;text-shadow:2px 2px 0 var(--acc-line);}
+  html[data-style="vintage"] .masthead{font-size:27px;line-height:1.05;}
+  html[data-style="vintage"] .d-title{font-size:36px;line-height:1.1;}
+  html[data-style="vintage"] .pl-title{font-size:32px;line-height:1.1;}
+  html[data-style="vintage"] .masthead small{font-family:var(--font-ui);letter-spacing:.24em;}
+  html[data-style="vintage"] .rule{background:none;height:0;border-top:3px double var(--ink);margin:16px 0;}
+  /* la vignette vide est un cartouche au trait, pas un trou */
+  html[data-style="vintage"] .thumb{border:1px dashed var(--line);}
+  html[data-style="vintage"] .thumb .ph,
+  html[data-style="vintage"] .d-hero .ph{font-style:italic;font-size:15px;}
+  html[data-style="vintage"] .card:hover .thumb img{transform:none;}
+  html[data-style="vintage"] .group-h{border-bottom:3px double var(--ink);font-size:11px;
+    letter-spacing:.2em;color:var(--ink);}
+  /* numéro d'étape : chiffre cerclé à l'encre d'appoint, pas de pastille pleine */
+  html[data-style="vintage"] ol.steps li::before{background:none;border:2px solid var(--accent);
+    color:var(--accent);font-family:var(--font-display);font-weight:600;font-size:15px;}
+  html[data-style="vintage"] .notes{border-style:dashed;border-left:3px double var(--accent);}
+  html[data-style="vintage"] .sec-h,
+  html[data-style="vintage"] .pl-step{color:var(--ink);letter-spacing:.18em;}
+  html[data-style="vintage"] .pick-bar{background:var(--sky4);border:1px solid var(--line);}
+  html[data-style="vintage"] .themebar,
+  html[data-style="vintage"] .appr-btn{background:var(--sky5);border:1px solid var(--line);}
+  html[data-style="vintage"] .appr-btn[aria-expanded="true"]{background:var(--accent);
+    color:var(--on-accent);border-color:var(--accent);}
+  /* survol : la couleur du texte est toujours reposée avec le fond */
+  html[data-style="vintage"] .chip:not(.on):hover,
+  html[data-style="vintage"] .modebtn:not(.et):hover,
+  html[data-style="vintage"] .sbtn:not(.on):hover,
+  html[data-style="vintage"] .clear:hover,
+  html[data-style="vintage"] .back:hover{background:var(--acc-soft);color:var(--ink);}
+  html[data-style="vintage"] .chip.on:hover,
+  html[data-style="vintage"] .modebtn.et:hover,
+  html[data-style="vintage"] .sbtn.on:hover{background:var(--accent-d);color:var(--on-accent);}
+  html[data-style="vintage"] .back:hover{transform:translate(-1px,-1px);}
+
+  /* =====================================================================
+     BASCULE VIGNETTES / COMPACT   (<html data-img="on|compact">)
+     En mode compact : aucune image nulle part, cartes en lignes denses.
+     ===================================================================== */
+  html[data-img="compact"] .thumb,
+  html[data-img="compact"] .d-hero{display:none;}
+  html[data-img="compact"] .grid,
+  html[data-img="compact"] .pick-grid{grid-template-columns:1fr;gap:5px;}
+  html[data-img="compact"] .card{flex-direction:row;}
+  html[data-img="compact"] .card-body{padding:10px 16px;display:flex;align-items:baseline;gap:18px;width:100%;}
+  html[data-img="compact"] .card-title{order:1;flex:1 1 auto;font-size:16px;margin:0;}
+  html[data-img="compact"] .card-tags{order:2;flex:0 0 auto;text-align:right;}
+  html[data-img="compact"] .card-meta{order:3;flex:0 0 auto;margin-top:0;white-space:nowrap;}
+  html[data-img="compact"] .card:hover{transform:translateX(3px);}
+  html[data-img="compact"] .card::before{height:100%;}
+  html[data-img="compact"] .card.pick.picked .card-title::before{content:"✓ ";color:var(--accent);}
+  html[data-img="compact"] .d-title{margin-bottom:14px;}
+  html[data-img="compact"] .group-h{margin-top:22px;}
+  @media(max-width:600px){
+    html[data-img="compact"] .card-body{flex-wrap:wrap;gap:4px 14px;}
+    html[data-img="compact"] .card-title{flex:1 0 100%;}
+  }
+
+  /* =====================================================================
+     MENU APPARENCE (style + palette + images)
+     ===================================================================== */
+  .appr-btn{width:100%;margin-top:16px;
+    font-family:var(--font-ui);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    padding:10px;border-radius:var(--radius);cursor:pointer;
+    background:var(--surface-ctl);border:var(--bd-w) solid var(--bd);color:var(--ink-soft);
+    box-shadow:var(--sh-in);transition:transform .12s,background .15s;}
+  .appr-btn:hover{background:var(--surface-hi);transform:translateY(var(--lift));}
+  .appr-btn[aria-expanded="true"]{background:var(--accent-fill);color:var(--on-accent);
+    text-shadow:var(--on-accent-sh);border-color:transparent;}
+  .themebar[hidden]{display:none;}
+  .themebar{margin-top:9px;
+    display:flex;flex-direction:column;gap:9px;padding:13px 16px;border-radius:var(--radius);
+    background:var(--surface-ctl);border:var(--bd-w) solid var(--bd);
+    box-shadow:var(--sh-in);
+    /* le panneau vit dans la barre latérale défilante : pleine largeur de la
+       colonne, il coule dans le défilement du menu (plus de popover fixe). */
+    width:100%;}
+  /* Chaque ligne est une grille : le nombre de colonnes est imposé, donc le
+     retour à la ligne ne dépend plus de la largeur du texte des boutons —
+     qui change avec la police de chaque style. Les 6 styles font toujours
+     3 + 3, quel que soit le style courant. */
+  .tb-row{display:grid;gap:7px 8px;align-items:center;}
+  /* minmax(0,1fr) et non 1fr : sur une fenêtre étroite les colonnes doivent
+     pouvoir passer sous leur largeur de contenu au lieu de déborder. */
+  .tb-styles{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .tb-pal{grid-template-columns:repeat(6,auto);justify-content:start;}
+  .tb-two{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .themebar .tb-label{font-family:var(--font-ui);font-size:9.5px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);opacity:.85;
+    grid-column:1/-1;margin-bottom:-2px;}
+  .sbtn{font-family:var(--font-ui);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    border:var(--bd-w) solid var(--bd);background:var(--surface-ctl);color:var(--ink-soft);
+    padding:4px 8px;border-radius:var(--pill);cursor:pointer;line-height:1.5;text-align:center;
+    min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    box-shadow:var(--sh-in);transition:transform .12s,background .15s,color .15s;}
+  .sbtn:hover{background:var(--surface-hi);transform:translateY(var(--lift));}
+  .sbtn:active{transform:scale(.94);}
+  .sbtn.on{color:var(--on-accent);border-color:transparent;text-shadow:var(--on-accent-sh);
+    background:var(--accent-fill);box-shadow:var(--sh-pill-on);}
+  /* Pastille de palette : un disque bicolore, rien d'autre.
+     - appearance:none : sinon le rendu natif du <button> se superpose au nôtre
+       (c'est de là que venait la boîte parasite).
+     - aucune bordure : l'anneau est un box-shadow, qui suit le rayon et
+       n'ajoute pas de boîte. Une bordure translucide laissait voir le dégradé
+       au travers, d'où l'anneau clair et sale.
+     - le disque est rond dans TOUS les styles : c'est un témoin de couleur,
+       pas un élément de la grammaire du style. */
+  .tdot{appearance:none;-webkit-appearance:none;
+    width:22px;height:22px;flex:0 0 auto;padding:0;margin:0;border:none;
+    border-radius:50%;cursor:pointer;box-shadow:0 0 0 1px var(--line);
+    transition:transform .15s var(--ease-pop),box-shadow .15s;}
+  .tdot:hover{transform:scale(1.15);}
+  .tdot.on{box-shadow:0 0 0 2px var(--ink);}
+  @media print{.themebar,.appr-btn,.resize-handle{display:none;}}
+  /* Mode : 3 boutons qui se partagent la ligne sans jamais tronquer « Sombre »
+     (capitales espacées en Vintage et Éditorial) */
+  .tb-three{display:flex;flex-wrap:wrap;gap:6px;}
+  .tb-three .tb-label{flex-basis:100%;}
+  .tb-three .sbtn{flex:1 1 auto;overflow:visible;}
+  /* 7 styles : les noms coulent sur la ligne (une grille fixe tronquait « Liquid Glass ») */
+  .tb-styles{display:flex;flex-wrap:wrap;gap:6px;}
+  .tb-styles .tb-label{flex-basis:100%;}
+  .tb-styles .sbtn{flex:0 0 auto;padding-left:10px;padding-right:10px;}
+
+  /* =====================================================================
+     PALETTES SOMBRES
+     Une palette peut se déclarer sombre (dark:true) : le JS pose alors
+     data-dark sur <html>. color-scheme prévient le navigateur, ce qui rend
+     les ascenseurs et les champs natifs sombres eux aussi.
+     ===================================================================== */
+  html[data-dark]{color-scheme:dark;}
+
+  /* --------------------------------------------------------------------
+     PALETTE DU PREMIER RENDU (Vintage / Rouge cerise)
+     Valeurs relevées sur la palette calculée, recopiées ici en dur pour
+     que la page soit JUSTE dès le premier pixel. Le script les repose
+     ensuite à l'identique en style en ligne sur :root — aucun changement
+     visible. Si un jour on déverrouille le thème, ces lignes ne gênent
+     pas : le style en ligne posé par le script les emporte toujours.
+     -------------------------------------------------------------------- */
+  html[data-style="vintage"]{
+    --sky1:#e2d5bd; --sky2:#ebe0cc; --sky3:#f1e9da; --sky4:#f6f1e6; --sky5:#faf6ee;
+    --ink:#2b2119; --ink-soft:#645344;
+    --accent:#ae292d; --accent-d:#841f22; --acc-l:#ae292d;
+    --warn:#4f5c28; --on-accent:#faf6ee;
+    --line:rgba(43,33,25,.28);
+    --acc-glow:rgba(174,41,45,.72); --acc-line:rgba(174,41,45,.4); --acc-soft:rgba(174,41,45,.15);
+    --ph-color:rgba(43,33,25,.78); --ink-a16:rgba(43,33,25,.16); --ink-a30:rgba(43,33,25,.3);
+  }
+  html[data-style="vintage"][data-dark]{
+    --sky1:#151515; --sky2:#212121; --sky3:#272727; --sky4:#2d2d2d; --sky5:#313131;
+    --ink:#f3e4d9; --ink-soft:#b59d8a;
+    --accent:#d1343b; --accent-d:#ff6b70; --acc-l:#d1343b;
+    --warn:#abbd75; --on-accent:#faf6ee;
+    --line:rgba(243,228,217,.28);
+    --acc-glow:rgba(209,52,59,.72); --acc-line:rgba(209,52,59,.4); --acc-soft:rgba(209,52,59,.15);
+    --ph-color:rgba(243,228,217,.78); --ink-a16:rgba(243,228,217,.16); --ink-a30:rgba(243,228,217,.3);
+  }
+
+  /* =====================================================================
+     VINTAGE SOMBRE — ce qui vaut sur papier crème ne vaut pas sur fond sombre
+     ---------------------------------------------------------------------
+     Le style Vintage imite deux encres imprimées sur un papier crème. En
+     sombre, le papier n'existe plus : garder ses artifices revient à filtrer
+     le thème clair, pas à le transposer. Trois artifices sont donc coupés,
+     et rien d'autre :
+
+     1. Les deux dégradés radiaux bruns du fond. Ils simulaient l'inégalité
+        du papier ; sur fond sombre ils se lisent comme un voile chaud posé
+        sur l'écran — exactement l'effet « mode nuit » à éviter. Fond plat.
+     2. Le décalage de la seconde encre sous les grands titres (le défaut de
+        repérage des presses bon marché). Sur fond clair c'est une citation
+        typographique ; sur fond sombre, une ombre colorée décalée ne cite
+        plus rien, elle ressemble à un défaut de rendu.
+     3. Le fond teinté des vignettes vides, qui empâtait les cartes.
+     ===================================================================== */
+  html[data-style="vintage"][data-dark]{
+    --page-bg:var(--sky2);
+    --thumb-bg:var(--sky3);
+  }
+  html[data-style="vintage"][data-dark] .masthead,
+  html[data-style="vintage"][data-dark] .d-title,
+  html[data-style="vintage"][data-dark] .pl-title{text-shadow:none;}
+
+  /* =====================================================================
+     RÉDUCTION DU BRUIT  (2026-09)
+     ---------------------------------------------------------------------
+     Diagnostic : la page portait trop de signaux de même force. Chaque
+     correction ci-dessous retire un signal qui ne distinguait rien, ou
+     rend à l'accent son rôle de pointeur unique.
+     ===================================================================== */
+
+  /* 1. La ligne de tags au-dessus du titre était en accent, graisse 700 :
+        elle se lisait AVANT le titre, alors qu'elle ne sert qu'à confirmer.
+        Elle redevient une mention secondaire. */
+  .card-tags{color:var(--ink-soft);font-weight:600;opacity:.85;}
+
+  /* 2. L'accent ne remplit plus les commandes de navigation. Retour,
+        « tout effacer » et les tags de la fiche sont des repères, pas des
+        actions à provoquer : ils passent à l'encre. Le rouge reste pour
+        UNE action principale (planifier), l'état actif d'un filtre, les
+        numéros d'étape et les étoiles. */
+  .clear{color:var(--ink-soft);}
+  .back{color:var(--ink-soft);}
+  .d-tag{color:var(--ink-soft);}
+
+  /* 3. Vignette absente. Le cartouche répétait le titre de la recette juste
+        au-dessus du titre de la recette : cette redondance-là est retirée,
+        il ne reste qu'une mention discrète.
+        EN REVANCHE la vignette GARDE SA HAUTEUR dans la liste. Première
+        tentative : on la réduisait à un bandeau plat pour récupérer le vide.
+        Résultat, dans une même rangée, les cartes sans photo voyaient leur
+        titre remonter de ~150 px pendant que les autres restaient en bas :
+        la grille perdait sa ligne de base commune, ce qui coûte plus à la
+        lecture que le vide ne coûtait. Une grille de cartes ne se lit que
+        si les cartes ont la même anatomie.
+        Sur la FICHE il n'y a pas de voisine avec qui s'aligner : là, le
+        cartouche est bien réduit à un bandeau, et les 500 px de vide sont
+        récupérés pour de bon. */
+  .thumb .ph{font-size:12px;opacity:.45;padding:10px;}
+  .d-hero .ph{aspect-ratio:auto;font-size:13px;padding:14px;opacity:.45;}
+
+  /* 4. Vocabulaire de filets : la carte portait un cadre plein ET une
+        vignette en tirets. Un seul filet suffit à dire « carte ». */
+  html[data-style="vintage"] .thumb{border:none;border-bottom:1px solid var(--line);}
+
+  /* 5. Les 46 pastilles de filtre avaient chacune un cadre et une ombre :
+        46 boutons de même poids. Sans cadre, elles forment une matière que
+        l'œil balaie, et seule la pastille ACTIVE reste un objet. */
+  html[data-style="vintage"] .chip:not(.on){border-color:transparent;background:var(--sky4);box-shadow:none;}
+  html[data-style="vintage"] .chip:not(.on):hover{background:var(--acc-soft);}
+
+  /* 6. Facettes repliables. Tout reste ouvert par défaut : rien ne change
+        tant qu'on n'a pas replié soi-même. L'état est mémorisé. */
+  .facet-head{cursor:pointer;}
+  .facet-name{display:flex;align-items:center;gap:6px;background:none;border:none;padding:0;margin:0;
+    cursor:pointer;color:inherit;font:inherit;text-align:left;flex:1;}
+  .facet-caret{font-size:9px;opacity:.55;transition:transform .15s;display:inline-block;}
+  .facet.closed .facet-caret{transform:rotate(-90deg);}
+  .facet.closed .chips{display:none;}
+  .facet.closed .modebtn{display:none;}
+  .facet-on{font-size:10px;font-weight:700;color:var(--accent);}
+
+  /* =====================================================================
+     NOTES — étoiles 1 à 5 et favori
+     ---------------------------------------------------------------------
+     Sur 119 cartes, afficher cinq étoiles partout aurait ajouté 595 glyphes
+     à une page dont le défaut était déjà l'encombrement. Règle retenue :
+     une carte NON NOTÉE ne montre rien ; ses étoiles n'apparaissent qu'au
+     survol ou au focus clavier. Une carte notée montre sa note en
+     permanence — c'est elle qui porte l'information.
+     ===================================================================== */
+  .note-row{display:flex;align-items:center;gap:10px;margin-top:9px;min-height:22px;
+    opacity:0;transition:opacity .15s;}
+  .card:hover .note-row,
+  .card:focus-within .note-row,
+  .card[data-noted] .note-row{opacity:1;}
+  /* Les étoiles sont posées dans l'ordre 5→1 et affichées en row-reverse :
+     elles se lisent bien 1→5 de gauche à droite, mais « l'étoile survolée et
+     toutes celles qui la précèdent » devient exprimable en CSS seul
+     (.st:hover ~ .st), sans écouteur de survol en JS. */
+  .stars{display:inline-flex;flex-direction:row-reverse;justify-content:flex-end;gap:1px;}
+  .st{background:none;border:none;padding:0 1px;margin:0;cursor:pointer;line-height:1;
+    font-size:15px;color:var(--ink-a30);transition:color .12s,transform .12s;}
+  .st.on{color:var(--accent);}
+  .stars:hover .st{color:var(--ink-a30);}
+  .stars .st:hover,.stars .st:hover ~ .st{color:var(--accent);}
+  .stars .st:hover{transform:scale(1.15);}
+  .st:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:2px;}
+  .wish{background:none;border:none;padding:0 2px;margin:0;cursor:pointer;line-height:1;
+    font-size:14px;color:var(--ink-a30);transition:color .12s,transform .12s;}
+  .wish:hover{transform:scale(1.15);}
+  /* Le cœur prend l'accent : c'est un jugement porté sur la recette, au même
+     titre que la note. Il reste dans les deux encres du thème. */
+  .wish[aria-pressed="true"]{color:var(--accent);}
+  .wish{font-size:15px;}
+  .wish:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:2px;}
+  .note-clear{background:none;border:none;padding:0 2px;cursor:pointer;color:var(--ink-a30);
+    font-size:13px;line-height:1;opacity:0;transition:opacity .12s,color .12s;}
+  .note-row:hover .note-clear{opacity:1;}
+  .note-clear:hover{color:var(--ink-soft);}
+
+  /* fiche détaillée : la note est une information de premier plan, elle est
+     donc toujours visible et à une taille lisible. */
+  .d-note{display:flex;align-items:center;gap:14px;margin:0 0 18px;flex-wrap:wrap;}
+  .d-note .note-row{opacity:1;margin-top:0;}
+  .d-note .st{font-size:24px;}
+  .d-note .wish{font-size:19px;}
+  .d-note .note-lbl{font-family:var(--font-ui);font-size:10px;letter-spacing:var(--ls-label);
+    text-transform:uppercase;font-weight:700;color:var(--ink-soft);}
+
+  /* tri et filtre par note */
+  .sortbar{display:inline-flex;align-items:center;gap:7px;margin-left:auto;}
+  /* Un des deux boutons de tri est TOUJOURS actif. Le remplir d'accent posait
+     donc une pastille rouge permanente dans le coin de l'écran, en
+     concurrence directe avec la seule action principale de la page. L'état
+     actif se dit ici par l'encre et un filet, pas par un aplat. */
+  .sortbtn{font-family:var(--font-ui);font-size:11px;font-weight:600;letter-spacing:.04em;
+    text-transform:uppercase;padding:3px 2px;margin-left:10px;cursor:pointer;
+    border:none;background:none;color:var(--ink-soft);border-bottom:2px solid transparent;}
+  .sortbtn:hover{color:var(--ink);}
+  .sortbtn.on{color:var(--ink);font-weight:700;border-bottom-color:var(--accent);}
+
+  /* panneau « Mes notes » */
+  .notes-panel{margin-top:9px;display:grid;gap:9px;
+    background:var(--surface-panel);border:var(--bd-w) solid var(--bd);border-radius:var(--radius);
+    padding:12px;box-shadow:var(--sh-bar);}
+  .notes-panel[hidden]{display:none;}
+  .notes-panel p{margin:0;font-size:11.5px;line-height:1.45;color:var(--ink-soft);}
+  .notes-panel .warnline{color:var(--warn);font-weight:700;}
+  .npbtn{font-family:var(--font-ui);font-size:12px;font-weight:700;padding:8px 10px;cursor:pointer;
+    border:var(--bd-w) solid var(--bd);border-radius:var(--ctl-radius);
+    background:var(--surface-ctl);color:var(--ink);}
+  .npbtn:hover{background:var(--surface-hi);}
+  .npbtn.primary{background:var(--accent-fill-2);color:var(--on-accent);border-color:transparent;}
+  /* =====================================================================
+     GESTION DES IMAGES depuis la page
+     ===================================================================== */
+  .d-imgbar{display:flex;align-items:center;gap:10px;margin:-8px 0 22px;flex-wrap:wrap;}
+  .imgbtn{font-family:var(--font-ui);font-size:11px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;padding:6px 13px;border-radius:var(--ctl-radius);cursor:pointer;
+    border:var(--bd-w) solid var(--bd);background:var(--surface-ctl);color:var(--ink-soft);}
+  .imgbtn:hover{background:var(--surface-hi);color:var(--ink);}
+  .imgbtn[aria-expanded="true"]{background:var(--accent-fill-2);color:var(--on-accent);border-color:transparent;}
+  .img-src{font-family:var(--font-ui);font-size:10.5px;color:var(--ink-soft);opacity:.8;}
+
+  .img-panel{display:grid;gap:9px;max-width:560px;margin:0 0 22px;
+    background:var(--surface-panel);border:var(--bd-w) solid var(--bd);border-radius:var(--radius);
+    padding:14px;box-shadow:var(--sh-bar);}
+  .img-panel[hidden]{display:none;}
+  .img-panel p{margin:0;font-size:11.5px;line-height:1.45;color:var(--ink-soft);}
+  .img-panel .err{color:var(--warn);font-weight:700;}
+  .img-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .img-url{flex:1;min-width:220px;padding:8px 10px;border:var(--bd-w) solid var(--bd);
+    border-radius:var(--ctl-radius);background:var(--surface-ctl);color:var(--ink);
+    font-family:var(--font-ui);font-size:12.5px;}
+  .img-url:focus{outline:none;border-color:var(--bd-focus);}
+
+  /* =====================================================================
+     AUDIT DU 3 OCTOBRE 2026 — corrections (sauvegarde : .sauvegardes/*avant-audit-apple)
+     ===================================================================== */
+  /* l'animation d'entrée des cartes ne rejoue pas à chaque filtre */
+  html[data-grid-pret] .card{animation:none;}
+  /* carte atteignable au clavier : anneau de focus visible */
+  .card:focus-visible{outline:3px solid var(--accent);outline-offset:3px;}
+  /* le décalage de repérage du titre ne doit pas être hérité par le sous-titre de 10 px */
+  .masthead small{text-shadow:none;}
+  /* écrans tactiles : zones de toucher d'au moins ~44 px, sans changer le dessin */
+  @media (pointer:coarse){
+    .d-note .st,.d-note .wish{min-width:40px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
+    .wbtn{position:relative;}
+    .wbtn::after{content:"";position:absolute;inset:-13px;}
+    .back,.imgbtn,.appr-btn{min-height:44px;}
+    /* le téléphone ne sert qu'à consulter : la gestion d'image n'y a pas de sens */
+    .d-fin .d-imgbar,.d-fin .img-panel{display:none;}
+  }
+  /* la base n'est rappelée que lorsqu'on s'en écarte (elle doublait le sélecteur) */
+  .serve-base{margin:-8px 0 14px;font-family:var(--font-ui);font-size:12.5px;color:var(--ink-soft);}
+  /* --- 3 octobre (2) : vignette-titre, planificateur en action secondaire --- */
+  /* Vignette-titre : discrète (encre secondaire, filet fin, italique) et
+     JAMAIS tronquée. La taille est en cqi, donc proportionnelle à la vignette
+     (format fixe 4/3) : le rapport texte / cadre ne dépend pas de l'écran.
+     ajusterTitres() réduit en plus la police si un titre déborde quand même. */
+  html[data-style] .thumb .ph.ph-titre{opacity:1;padding:0;position:absolute;inset:7%;display:flex;
+    align-items:center;justify-content:center;border:1px solid var(--line);
+    text-transform:none;letter-spacing:0;font-style:normal;overflow:hidden;}
+  .ph-titre span{display:block;padding:0 8%;font-family:var(--font-display);font-style:italic;font-weight:500;
+    font-size:clamp(13px,7cqi,22px);line-height:1.22;color:var(--ink-soft);text-align:center;text-wrap:balance;}
+  .d-fin{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);}
+  .d-fin .d-note{margin-bottom:12px;}
+  /* en sombre, l'accent de remplissage est un vrai rouge trop foncé pour servir de texte :
+     les usages « texte » passent à --accent-d (rouge clair, 4,5:1) */
+  html[data-dark] ol.steps li::before,
+  html[data-dark] ul.ing .q.flash,
+  html[data-dark] .facet-on,
+  html[data-dark] .pl-rec-actions button:hover,
+  html[data-dark][data-img="compact"] .card.pick.picked .card-title::before{color:var(--accent-d);}
+  html[data-style="vintage"][data-dark] ol.steps li::before{border-color:var(--accent-d);}
+  /* survol d'un élément rempli : en sombre --accent-d est clair (rôle texte), on fonce donc l'accent */
+  html[data-style="vintage"][data-dark] .chip.on:hover,
+  html[data-style="vintage"][data-dark] .modebtn.et:hover,
+  html[data-style="vintage"][data-dark] .sbtn.on:hover{background:color-mix(in srgb,var(--accent) 82%,#000);}
+  #planBtn{margin-top:12px;}
+  .thumb{container-type:inline-size;}
+  @media(max-width:780px){
+    /* sur téléphone, la fiche s'ouvre sur la recette, pas sur la colonne de filtres */
+    html[data-view="detail"] .side{display:none;}
+  }
+
+  /* =====================================================================
+     STYLE 7 — LIQUID GLASS  (3 octobre 2026, skill liquid-glass-web)
+     ---------------------------------------------------------------------
+     RETOUR ARRIÈRE : choisir un autre style dans « Apparence » (tous accessibles).
+     Copie intégrale de l'état précédent :
+       .sauvegardes/recettes.html.2026-10-03_203925.avant-liquid-glass
+
+     Deux couches, comme chez Apple (iOS 26 / macOS Tahoe) :
+       · NAVIGATION en verre : la colonne de gauche (panneau flottant), la
+         barre de sélection du planificateur, le bouton Retour de la fiche
+         (capsule collante, avec réfraction des bords sous Chromium/Brave).
+       · CONTENU sur surfaces opaques : cartes, fiche, ingrédients, étapes.
+         Du texte long sur du verre devient illisible dès que le fond change.
+     Le fond de page porte trois halos de couleur fixes : sans matière
+     derrière lui, le verre n'est qu'un gris pâle.
+     Jetons --lg-* repris de lg.css (skill liquid-glass-web) ; tout le reste
+     de ce bloc en dérive.
+     ===================================================================== */
+  html[data-style="glass"]{
+    /* ---- jetons Apple — clair ---- */
+    --lg-font:system-ui,-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --lg-r-sm:10px; --lg-r-md:14px; --lg-r-lg:22px; --lg-r-xl:28px; --lg-r-pill:999px;
+    --lg-ease:cubic-bezier(.25,1,.5,1); --lg-dur-fast:120ms; --lg-dur:280ms;
+    --lg-orange:#ff9500; --lg-purple:#af52de;
+    --lg-bg:#f2f2f7; --lg-surface:#ffffff; --lg-surface-2:#f2f2f7;
+    --lg-fill:rgba(120,120,128,.12); --lg-fill-2:rgba(120,120,128,.20);
+    --lg-separator:rgba(60,60,67,.22);
+    --lg-seg-on:#ffffff;
+    --lg-seg-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04);
+    --lg-glass-tint:rgba(255,255,255,.72); --lg-glass-tint-2:rgba(255,255,255,.55);
+    --lg-glass-edge:rgba(255,255,255,.75); --lg-glass-rim:rgba(0,0,0,.06);
+    --lg-glass-shadow:0 8px 32px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.08);
+    --lg-glass-blur:22px; --lg-glass-sat:180%;
+    --lg-card-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px -8px rgba(0,0,0,.14);
+    --lg-card-shadow-hov:0 2px 4px rgba(0,0,0,.05),0 26px 40px -18px color-mix(in srgb,var(--accent) 55%,transparent);
+    --lg-blob-1:24%; --lg-blob-2:20%; --lg-blob-3:14%;
+    --lg-panel:color-mix(in srgb,var(--lg-surface) 72%,transparent);
+
+    /* ---- palette du premier rendu (le script repose exactement la même) ---- */
+    --sky1:#e5e5ea; --sky2:#ebebf0; --sky3:#f2f2f7; --sky4:#f9f9fb; --sky5:#ffffff;
+    --ink:#1d1d1f; --ink-soft:#6e6e73; --masthead:#1d1d1f;
+    --accent:#d70015; --accent-d:#b5000f; --acc-l:#d70015;
+    --warn:#c93400; --on-accent:#ffffff;
+    --line:rgba(29,29,31,.28);
+    --acc-glow:rgba(215,0,21,.72); --acc-line:rgba(215,0,21,.4); --acc-soft:rgba(215,0,21,.15);
+    --ph-color:rgba(29,29,31,.78); --ink-a16:rgba(29,29,31,.16); --ink-a30:rgba(29,29,31,.3);
+
+    /* ---- jetons du carnet ramenés sur les jetons Apple ---- */
+    --font-ui:var(--lg-font); --font-display:var(--lg-font); --font-body:var(--lg-font);
+    --font-text:var(--lg-font); --font-note:var(--lg-font);
+    --fs-body:17px; --lh-body:1.47;
+    --ls-label:0; --tt-label:none; --fw-label:600;
+    --ls-title:-.02em; --fw-title:700; --lh-title:1.2;
+
+    --page-bg:
+      radial-gradient(55% 45% at 0% 0%,color-mix(in srgb,var(--accent) var(--lg-blob-1),transparent),transparent 72%),
+      radial-gradient(45% 40% at 100% 0%,color-mix(in srgb,var(--lg-orange) var(--lg-blob-2),transparent),transparent 72%),
+      radial-gradient(60% 55% at 12% 100%,color-mix(in srgb,var(--lg-purple) var(--lg-blob-3),transparent),transparent 72%),
+      var(--lg-bg);
+    --page-attach:fixed;
+
+    --radius:var(--lg-r-md); --card-radius:var(--lg-r-lg); --ctl-radius:var(--lg-r-sm);
+    --pill:var(--lg-r-pill); --round:50%;
+
+    --bd-w:1px; --bd:transparent; --bd-focus:var(--accent); --bd-on:transparent;
+    --surface-side:transparent;
+    --surface-card:var(--lg-surface);
+    --surface-ctl:var(--lg-fill);
+    --surface-panel:var(--lg-surface);
+    --surface-hi:var(--lg-fill-2); --surface-hi-soft:var(--lg-fill-2);
+    --blur-side:blur(var(--lg-glass-blur)) saturate(var(--lg-glass-sat));
+    --blur-card:none; --blur-rec:none;
+    --blur-bar:blur(var(--lg-glass-blur)) saturate(var(--lg-glass-sat));
+
+    --sh-in:none; --sh-in-soft:none; --sh-field:none;
+    --sh-field-focus:0 0 0 3px var(--acc-line);
+    --sh-card:var(--lg-card-shadow);       --sh-card-hov:var(--lg-card-shadow-hov);
+    --sh-card-sm:var(--lg-card-shadow);    --sh-card-sm-hov:var(--lg-card-shadow-hov);
+    --sh-hero:var(--lg-card-shadow);       --sh-bar:var(--lg-glass-shadow);
+    --sh-pill:none; --sh-pill-on:none;
+    --sh-acc:none; --sh-acc-hov:none; --sh-acc-press:none; --sh-num:none;
+    --sh-picked:var(--lg-card-shadow-hov);
+
+    --accent-fill:var(--accent); --accent-fill-2:var(--accent); --on-accent-sh:none;
+    --gloss:0; --title-sh:none; --label-sh:none;
+    --lift:0px;
+    --card-lift:translateY(-5px); --card-lift-press:translateY(-2px) scale(.99);
+    --card-lift-sm:translateY(-2px); --press:scale(.96);
+    --ease-pop:var(--lg-ease);
+
+    --thumb-bg:var(--lg-surface-2);
+    --li-border:1px solid var(--lg-separator);
+    --sec-border:0 solid transparent;
+    --ph-weight:500; --ph-tt:none; --ph-ls:0;
+    --badge-radius:var(--lg-r-pill);
+    --grid-min:220px; --grid-gap:20px;
+  }
+  /* ---- jetons Apple — sombre (data-dark est posé par le menu Apparence) ---- */
+  html[data-style="glass"][data-dark]{
+    --lg-orange:#ff9f0a; --lg-purple:#bf5af2;
+    --lg-bg:#000000; --lg-surface:#1c1c1e; --lg-surface-2:#2c2c2e;
+    --lg-fill:rgba(120,120,128,.24); --lg-fill-2:rgba(120,120,128,.36);
+    --lg-separator:rgba(84,84,88,.6);
+    --lg-seg-on:#636366;
+    --lg-seg-shadow:0 3px 8px rgba(0,0,0,.3);
+    --lg-glass-tint:rgba(36,36,40,.66); --lg-glass-tint-2:rgba(36,36,40,.5);
+    --lg-glass-edge:rgba(255,255,255,.22); --lg-glass-rim:rgba(255,255,255,.06);
+    --lg-glass-shadow:0 8px 32px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.4);
+    --lg-card-shadow:0 0 0 .5px rgba(255,255,255,.07),0 8px 24px -12px rgba(0,0,0,.7);
+    --lg-card-shadow-hov:0 0 0 .5px rgba(255,255,255,.12),0 26px 40px -18px color-mix(in srgb,var(--accent) 60%,transparent);
+    --lg-blob-1:30%; --lg-blob-2:16%; --lg-blob-3:18%;
+
+    --sky1:#000000; --sky2:#0c0c0d; --sky3:#161618; --sky4:#1c1c1e; --sky5:#2c2c2e;
+    --ink:#f5f5f7; --ink-soft:#98989f; --masthead:#f5f5f7;
+    --accent:#e0242c; --accent-d:#ff6961; --acc-l:#e0242c;
+    --warn:#ff9f0a; --on-accent:#ffffff;
+    --line:rgba(245,245,247,.28);
+    --acc-glow:rgba(224,36,44,.72); --acc-line:rgba(224,36,44,.4); --acc-soft:rgba(224,36,44,.15);
+    --ph-color:rgba(245,245,247,.78); --ink-a16:rgba(245,245,247,.16); --ink-a30:rgba(245,245,247,.3);
+  }
+
+  html[data-style="glass"] body{letter-spacing:-.01em;font-optical-sizing:auto;}
+  html[data-style="glass"] :focus-visible{outline:3px solid var(--acc-line);outline-offset:2px;}
+
+  /* ---------- NAVIGATION : la colonne de gauche, panneau de verre flottant ---------- */
+  html[data-style="glass"] .side{top:10px;height:calc(100vh - 20px);margin:10px 0 10px 10px;
+    padding:24px 16px 40px;border:none;border-radius:var(--lg-r-xl);
+    background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));
+    box-shadow:var(--lg-glass-shadow),inset 0 1px .5px var(--lg-glass-edge),
+      inset 0 -1px .5px var(--lg-glass-rim),inset 0 0 0 .5px var(--lg-glass-edge);
+    scrollbar-width:thin;scrollbar-color:var(--lg-fill-2) transparent;}
+  html[data-style="glass"] .masthead{font-size:2.125rem;font-weight:700;letter-spacing:-.025em;
+    line-height:1.12;color:var(--ink);padding:0 4px;}
+  html[data-style="glass"] .masthead small{font-size:.8125rem;letter-spacing:0;text-transform:none;
+    font-weight:500;color:var(--ink-soft);margin-top:4px;}
+  html[data-style="glass"] .rule{height:1px;border-radius:0;background:var(--lg-separator);margin:16px 4px;}
+
+  /* recherche : capsule remplie, loupe dessinée en masque (suit la couleur du mode) */
+  html[data-style="glass"] .search-wrap::before{content:"";position:absolute;left:12px;top:50%;
+    width:15px;height:15px;transform:translateY(-50%);background:var(--ink-soft);pointer-events:none;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='5'/%3E%3Cpath d='M10.6 10.6 15 15'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='6.8' cy='6.8' r='5'/%3E%3Cpath d='M10.6 10.6 15 15'/%3E%3C/svg%3E") center/contain no-repeat;}
+  html[data-style="glass"] .search{border:none;border-radius:var(--lg-r-pill);background:var(--lg-fill);
+    padding:10px 34px 10px 35px;font-size:1rem;font-weight:400;min-height:40px;}
+  html[data-style="glass"] .search::placeholder{color:var(--ink-soft);opacity:1;}
+  html[data-style="glass"] .search:focus{box-shadow:0 0 0 3px var(--acc-line);}
+  html[data-style="glass"] .search-clear{background:var(--ink-a30);color:var(--lg-surface);font-size:13px;}
+
+  /* facettes */
+  html[data-style="glass"] .facet{margin-top:18px;}
+  html[data-style="glass"] .facet-head{padding:0 4px;}
+  html[data-style="glass"] .facet-head .label{font-size:.8125rem;font-weight:600;color:var(--ink-soft);}
+  html[data-style="glass"] .facet-caret{font-size:10px;}
+  html[data-style="glass"] .chips{gap:6px;}
+  html[data-style="glass"] .chip{border:none;background:var(--lg-fill);color:var(--ink);font-size:.8125rem;
+    font-weight:500;letter-spacing:0;padding:6px 12px;
+    transition:transform var(--lg-dur-fast) var(--lg-ease),background var(--lg-dur) var(--lg-ease),color var(--lg-dur) var(--lg-ease);}
+  html[data-style="glass"] .chip:hover{transform:none;background:var(--lg-fill-2);}
+  html[data-style="glass"] .chip:active{transform:scale(.96);}
+  html[data-style="glass"] .chip.on{background:var(--accent);color:var(--on-accent);}
+  html[data-style="glass"] .chip.on:hover{background:color-mix(in srgb,var(--accent) 86%,#000);}
+  html[data-style="glass"] .chip .n{font-weight:500;}
+  html[data-style="glass"] .modebtn{border:none;background:var(--lg-fill);color:var(--ink-soft);
+    font-size:.6875rem;font-weight:600;letter-spacing:.02em;padding:2px 9px;}
+  html[data-style="glass"] .modebtn:hover{background:var(--lg-fill-2);transform:none;}
+  html[data-style="glass"] .modebtn.et{background:var(--accent);color:var(--on-accent);}
+
+  /* boutons de la colonne (Planifier, Mes notes, Apparence) : rangées remplies,
+     pas de verre dans le verre */
+  html[data-style="glass"] .appr-btn,
+  html[data-style="glass"] .filter-toggle{border:none;border-radius:var(--lg-r-md);background:var(--lg-fill);
+    color:var(--ink);font-size:.9375rem;font-weight:600;letter-spacing:-.01em;text-transform:none;
+    min-height:44px;padding:10px 14px;text-align:left;
+    transition:transform var(--lg-dur-fast) var(--lg-ease),background var(--lg-dur) var(--lg-ease);}
+  html[data-style="glass"] .appr-btn:hover{background:var(--lg-fill-2);transform:none;}
+  html[data-style="glass"] .appr-btn:active{transform:scale(.98);}
+  html[data-style="glass"] .appr-btn[aria-expanded="true"]{background:var(--accent);color:var(--on-accent);}
+  html[data-style="glass"] .themebar,
+  html[data-style="glass"] .notes-panel{border:none;border-radius:var(--lg-r-md);background:var(--lg-panel);
+    box-shadow:none;}
+  html[data-style="glass"] .themebar .tb-label{font-size:.75rem;letter-spacing:0;text-transform:none;font-weight:600;}
+  html[data-style="glass"] .sbtn{border:none;background:var(--lg-fill);color:var(--ink);font-size:.75rem;
+    font-weight:500;letter-spacing:0;text-transform:none;padding:5px 6px;}
+  html[data-style="glass"] .sbtn:hover{background:var(--lg-fill-2);transform:none;}
+  html[data-style="glass"] .sbtn.on{background:var(--accent);color:var(--on-accent);}
+  html[data-style="glass"] .notes-panel p{font-size:.8125rem;}
+  html[data-style="glass"] .npbtn{border:none;border-radius:var(--lg-r-sm);background:var(--lg-fill);
+    font-size:.8125rem;font-weight:600;min-height:36px;}
+  html[data-style="glass"] .npbtn:hover{background:var(--lg-fill-2);}
+  html[data-style="glass"] .npbtn.primary{background:var(--accent);color:var(--on-accent);}
+
+  /* ---------- CONTENU : liste ---------- */
+  html[data-style="glass"] .main{padding:30px 36px 90px 30px;}
+  html[data-style="glass"] .topbar{align-items:center;}
+  html[data-style="glass"] .count-h{font-size:.9375rem;font-weight:600;letter-spacing:-.01em;
+    text-transform:none;color:var(--ink-soft);}
+  html[data-style="glass"] .clear{border:none;background:var(--lg-fill);color:var(--ink);font-size:.8125rem;
+    font-weight:600;letter-spacing:0;text-transform:none;padding:5px 12px;}
+  html[data-style="glass"] .clear:hover{background:var(--lg-fill-2);transform:none;}
+  html[data-style="glass"] .atag{font-size:.8125rem;font-weight:600;letter-spacing:0;text-transform:none;
+    padding:5px 6px 5px 12px;}
+  /* tri : contrôle segmenté */
+  html[data-style="glass"] .sortbar{gap:2px;padding:2px;border-radius:var(--lg-r-sm);background:var(--lg-fill);}
+  html[data-style="glass"] .sortbtn{margin:0;border:none;border-radius:8px;padding:6px 12px;
+    font-size:.8125rem;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink);
+    transition:background var(--lg-dur) var(--lg-ease);}
+  html[data-style="glass"] .sortbtn.on{background:var(--lg-seg-on);box-shadow:var(--lg-seg-shadow);font-weight:600;}
+  html[data-style="glass"] .group-h{margin:30px 0 2px;padding:0;border:none;font-size:1.375rem;font-weight:700;
+    letter-spacing:-.02em;text-transform:none;color:var(--ink);}
+  html[data-style="glass"] .group-h:first-child{margin-top:4px;}
+  html[data-style="glass"] .group-n{font-size:.9375rem;font-weight:500;opacity:1;color:var(--ink-soft);letter-spacing:0;}
+
+  /* survol : la carte entière se soulève sur un ressort léger (petit
+     dépassement, puis elle se pose) et un halo à la couleur de l'accent
+     apparaît dessous (--lg-card-shadow-hov). Ni reflet, ni zoom de la photo. */
+  html[data-style="glass"] .card{border:none;
+    transition:transform .5s cubic-bezier(.34,1.5,.64,1),box-shadow var(--lg-dur) var(--lg-ease);}
+  html[data-style="glass"] .card .shine{display:none;}
+  html[data-style="glass"] .thumb{border-bottom:none;}
+  html[data-style="glass"] .card:hover .thumb img{transform:none;}
+  html[data-style="glass"] .card-body{padding:12px 15px 14px;}
+  html[data-style="glass"] .card-tags{font-size:.75rem;font-weight:500;letter-spacing:0;opacity:1;}
+  html[data-style="glass"] .card-title{font-size:1.0625rem;font-weight:600;letter-spacing:-.015em;line-height:1.25;margin-top:3px;}
+  html[data-style="glass"] .card-meta{font-size:.8125rem;font-weight:400;letter-spacing:0;margin-top:5px;}
+  /* pastille posée sur la photo : toujours sur image, donc couleurs fixes */
+  html[data-style="glass"] .webbadge{background:rgba(0,0,0,.42);color:#fff;opacity:1;font-size:10px;font-weight:600;
+    letter-spacing:0;text-transform:none;padding:3px 8px;
+    -webkit-backdrop-filter:blur(10px) saturate(180%);backdrop-filter:blur(10px) saturate(180%);}
+  html[data-style="glass"] .thumb .ph.ph-titre{border:none;}
+  html[data-style="glass"] .ph-titre span{font-style:normal;font-weight:600;letter-spacing:-.01em;}
+  html[data-style="glass"] .empty{font-style:normal;}
+
+  /* ---------- CONTENU : fiche ---------- */
+  /* Retour : capsule de verre collante — elle reste à portée pendant la lecture */
+  html[data-style="glass"] .back{display:flex;width:fit-content;align-items:center;gap:4px;
+    min-height:44px;padding:0 18px 0 14px;border:none;border-radius:var(--lg-r-pill);
+    font-size:1rem;font-weight:600;letter-spacing:-.01em;text-transform:none;color:var(--ink);
+    background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));
+    -webkit-backdrop-filter:blur(var(--lg-glass-blur)) saturate(var(--lg-glass-sat));
+    backdrop-filter:blur(var(--lg-glass-blur)) saturate(var(--lg-glass-sat));
+    box-shadow:var(--lg-glass-shadow),inset 0 1px .5px var(--lg-glass-edge),
+      inset 0 -1px .5px var(--lg-glass-rim),inset 0 0 0 .5px var(--lg-glass-edge);
+    transition:transform var(--lg-dur-fast) var(--lg-ease);}
+  html[data-style="glass"] .back:hover{transform:none;background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));}
+  html[data-style="glass"] .back:active{transform:scale(.96);}
+  html[data-style="glass"] .back.lg-refract{--lg-glass-edge:rgba(255,255,255,.85);}
+  html[data-style="glass"] #detailView > .back{position:sticky;top:12px;z-index:20;}
+
+  html[data-style="glass"] .d-tag{border:none;background:var(--lg-fill);font-size:.75rem;font-weight:500;
+    letter-spacing:0;text-transform:none;padding:4px 10px;}
+  html[data-style="glass"] .d-title{font-size:2.125rem;font-weight:700;letter-spacing:-.025em;line-height:1.12;}
+  html[data-style="glass"] .d-hero{border:none;}
+  html[data-style="glass"] .d-meta{gap:10px;}
+  html[data-style="glass"] .d-meta div{border:none;border-radius:var(--lg-r-md);box-shadow:var(--lg-card-shadow);padding:9px 16px;}
+  html[data-style="glass"] .d-meta .label{font-size:.75rem;font-weight:500;color:var(--ink-soft);}
+  html[data-style="glass"] .d-meta b{font-size:1.0625rem;font-weight:600;letter-spacing:-.01em;}
+  html[data-style="glass"] .sec-h,
+  html[data-style="glass"] .pl-step{font-size:1.375rem;font-weight:700;letter-spacing:-.02em;text-transform:none;
+    color:var(--ink);border:none;padding:0;margin-bottom:12px;}
+  html[data-style="glass"] .serve,
+  html[data-style="glass"] .stepper{border:none;border-radius:var(--lg-r-sm);background:var(--lg-fill);box-shadow:none;}
+  html[data-style="glass"] .serve button,
+  html[data-style="glass"] .stepper button{color:var(--ink);width:44px;height:36px;}
+  html[data-style="glass"] .serve button:hover,
+  html[data-style="glass"] .stepper button:hover{background:var(--lg-fill);}
+  html[data-style="glass"] .serve .val{font-size:.9375rem;font-weight:500;letter-spacing:0;text-transform:none;}
+  html[data-style="glass"] .serve .val b{font-size:1.0625rem;font-weight:700;}
+  html[data-style="glass"] .serve-base{font-size:.8125rem;}
+
+  /* ingrédients et étapes : listes groupées sur carte opaque */
+  html[data-style="glass"] ul.ing,
+  html[data-style="glass"] ol.steps{background:var(--lg-surface);border-radius:var(--lg-r-lg);box-shadow:var(--lg-card-shadow);}
+  html[data-style="glass"] ul.ing{padding:2px 16px;}
+  html[data-style="glass"] ul.ing li{padding:11px 0;font-size:1rem;}
+  html[data-style="glass"] ul.ing li:last-child{border-bottom:none;}
+  html[data-style="glass"] ul.ing .q{font-weight:600;}
+  html[data-style="glass"] ol.steps{padding:18px 20px 4px 18px;}
+  html[data-style="glass"] ol.steps li{font-size:1.0625rem;line-height:1.47;padding-bottom:16px;}
+  html[data-style="glass"] ol.steps li::before{font-size:.875rem;font-weight:600;width:28px;height:28px;top:-1px;}
+  html[data-style="glass"][data-dark] ol.steps li::before{color:var(--on-accent);}
+  html[data-style="glass"] .notes{border:none;border-radius:var(--lg-r-lg);font-style:normal;font-size:.9375rem;
+    color:var(--ink-soft);box-shadow:var(--lg-card-shadow);}
+  html[data-style="glass"] .d-fin{border-top:1px solid var(--lg-separator);}
+  html[data-style="glass"] .d-note .note-lbl{font-size:.8125rem;letter-spacing:0;text-transform:none;font-weight:600;}
+  html[data-style="glass"] .imgbtn{border:none;border-radius:var(--lg-r-pill);background:var(--lg-fill);color:var(--ink);
+    font-size:.8125rem;font-weight:600;letter-spacing:0;text-transform:none;padding:7px 14px;}
+  html[data-style="glass"] .imgbtn:hover{background:var(--lg-fill-2);}
+  html[data-style="glass"] .imgbtn[aria-expanded="true"]{background:var(--accent);color:var(--on-accent);}
+  html[data-style="glass"] .img-panel{border:none;border-radius:var(--lg-r-lg);box-shadow:var(--lg-card-shadow);}
+  html[data-style="glass"] .img-url{border:none;border-radius:var(--lg-r-sm);background:var(--lg-fill);font-size:.875rem;}
+  html[data-style="glass"] .img-url:focus{box-shadow:0 0 0 3px var(--acc-line);}
+
+  /* ---------- CONTENU : planificateur ---------- */
+  html[data-style="glass"] .pl-title{font-size:2.125rem;font-weight:700;letter-spacing:-.025em;line-height:1.12;}
+  html[data-style="glass"] .pl-lead{font-size:1.0625rem;}
+  html[data-style="glass"] .pl-field .label,
+  html[data-style="glass"] .pl-facets .facet-head .label{font-size:.8125rem;font-weight:600;}
+  /* action principale : bouton plein à l'accent, une seule par vue */
+  html[data-style="glass"] .pl-go,
+  html[data-style="glass"] .plan-btn{border:none;border-radius:var(--lg-r-pill);min-height:44px;padding:0 22px;
+    font-size:1rem;font-weight:600;letter-spacing:-.01em;text-transform:none;
+    transition:transform var(--lg-dur-fast) var(--lg-ease),filter var(--lg-dur-fast) var(--lg-ease);}
+  html[data-style="glass"] .pl-go:hover,
+  html[data-style="glass"] .plan-btn:hover{transform:none;filter:brightness(1.08);}
+  html[data-style="glass"] .pl-go:active,
+  html[data-style="glass"] .plan-btn:active{transform:scale(.96);}
+  html[data-style="glass"] .pl-go.ghost,
+  html[data-style="glass"] .plan-btn.ghost{background:var(--lg-fill);color:var(--accent-d);}
+  html[data-style="glass"] .pl-go.ghost:hover,
+  html[data-style="glass"] .plan-btn.ghost:hover{background:var(--lg-fill-2);filter:none;}
+  html[data-style="glass"] .pl-or{font-family:var(--lg-font);font-style:normal;}
+  html[data-style="glass"] .pl-note{font-style:normal;}
+  html[data-style="glass"] .pl-rec{border:none;}
+  html[data-style="glass"] .pl-rec .pl-rtags{font-size:.75rem;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink-soft);}
+  html[data-style="glass"] .pl-rec h4{font-size:1.0625rem;font-weight:600;letter-spacing:-.015em;}
+  html[data-style="glass"] .pl-rec .pl-rmeta{font-size:.8125rem;font-weight:400;letter-spacing:0;}
+  html[data-style="glass"] .pl-rec-actions button{font-size:.8125rem;font-weight:600;letter-spacing:0;text-transform:none;}
+  html[data-style="glass"] .shop-sec h4{font-size:1.375rem;font-weight:700;letter-spacing:-.02em;text-transform:none;
+    color:var(--ink);border-bottom:none;padding-bottom:0;}
+  html[data-style="glass"] .rayon h5{font-size:.8125rem;font-weight:600;letter-spacing:0;text-transform:none;
+    color:var(--ink-soft);border-bottom-color:var(--lg-separator);}
+  html[data-style="glass"] ul.shop-list li{border-bottom:1px solid var(--lg-separator);}
+  /* barre de sélection : verre collant, le contenu défile dessous */
+  html[data-style="glass"] .pick-bar{top:10px;margin:0 0 18px;padding:10px 12px 10px 18px;border-radius:var(--lg-r-xl);
+    background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));
+    box-shadow:var(--lg-glass-shadow),inset 0 1px .5px var(--lg-glass-edge),
+      inset 0 -1px .5px var(--lg-glass-rim),inset 0 0 0 .5px var(--lg-glass-edge);}
+  html[data-style="glass"] .card.pick.picked{outline-width:3px;}
+
+  /* ---------- téléphone ---------- */
+  @media(max-width:780px){
+    html[data-style="glass"] .side{position:static;top:auto;height:auto;margin:8px;padding:20px 14px 16px;
+      border-radius:var(--lg-r-lg);}
+    html[data-style="glass"] .main{padding:16px 16px 60px;}
+    html[data-style="glass"] .d-title,
+    html[data-style="glass"] .pl-title{font-size:1.75rem;}
+  }
+  /* ---------- accessibilité : le verre cède la place à des surfaces pleines ---------- */
+  @media (prefers-reduced-transparency:reduce){
+    html[data-style="glass"] .side,
+    html[data-style="glass"] .back,
+    html[data-style="glass"] .pick-bar{background:var(--lg-surface)!important;
+      -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+  }
+  @media (prefers-contrast:more){
+    html[data-style="glass"] .side,
+    html[data-style="glass"] .back,
+    html[data-style="glass"] .pick-bar{background:var(--lg-surface)!important;
+      -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+      box-shadow:inset 0 0 0 1.5px var(--ink)!important;}
+    html[data-style="glass"]{--lg-separator:var(--ink-a30);}
+  }
+  @media print{
+    html[data-style="glass"] body{background:#fff;}
+    html[data-style="glass"] .side,
+    html[data-style="glass"] .back,
+    html[data-style="glass"] .pick-bar{background:none;box-shadow:none;
+      -webkit-backdrop-filter:none;backdrop-filter:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <h1 class="masthead">Recettes<small>Carnet de cuisine</small></h1>
+    <div class="rule"></div>
+    <div class="search-wrap">
+      <input id="search" class="search" type="search" placeholder="Rechercher…" autocomplete="off">
+      <button id="searchClear" class="search-clear" type="button" aria-label="Effacer la recherche" style="display:none">×</button>
+    </div>
+    <button id="planBtn" class="appr-btn plan-sec" type="button">Planifier mes courses</button>
+    <button id="filterToggle" class="filter-toggle" type="button" aria-expanded="true">Filtres ▾</button>
+    <div id="facets"></div>
+    <button id="notesBtn" class="appr-btn" type="button" aria-expanded="false" aria-controls="notesPanel">Mes notes</button>
+    <div id="notesPanel" class="notes-panel" role="dialog" aria-label="Mes notes" hidden></div>
+    <button id="apprBtn" class="appr-btn" type="button" aria-expanded="false" aria-controls="themebar">Apparence</button>
+    <div id="themebar" class="themebar" role="dialog" aria-label="Apparence" hidden></div>
+  </aside>
+  <div class="resize-handle" id="resizeHandle" title="Redimensionner la barre latérale" role="separator" aria-orientation="vertical"></div>
+  <main class="main">
+    <section id="listView">
+      <div class="topbar">
+        <span id="countH" class="count-h"></span>
+        <button id="clearBtn" class="clear" style="display:none">Tout effacer</button>
+        <span id="sortBar" class="sortbar"></span>
+      </div>
+      <div id="activeTags" class="active-tags"></div>
+      <div id="grid" class="grid"></div>
+    </section>
+    <section id="detailView" class="detail"></section>
+    <section id="plannerView" class="planner"></section>
+  </main>
+</div>
+
+
+<!-- Notes personnelles (étoiles + favoris) déposées sur le disque par le
+     bouton « Mes notes › Enregistrer sur le disque ». Le fichier est FACULTATIF :
+     s'il manque, le navigateur signale un 404 dans la console et le carnet
+     fonctionne normalement sur les seules notes du navigateur. -->
+<script src="recettes-notes.js"></script>
+<script src="recettes-ingredients.js"></script>
+<script src="recettes-data.js"></script>
+
+<script>
+const $ = s => document.querySelector(s);
+function animateView(el){ if(!el) return; el.classList.remove("view-anim"); void el.offsetWidth; el.classList.add("view-anim"); }
+let navPushed=false;
+function pushNav(){ if(!navPushed){ history.pushState({carnet:1},""); navPushed=true; } }
+window.addEventListener("popstate", function(){ navPushed=false; goBrowse(); });
+const FACETTES = window.FACETTES || {};
+const FMODE = window.FACETTES_MODE || {};
+const RECETTES = window.RECETTES || [];
+const INGREDIENTS = window.INGREDIENTS || [];
+const RAYON_OF = {}; INGREDIENTS.forEach(x=>{ RAYON_OF[x.name]=x.rayon; });
+
+/* =====================================================================
+   NOTES PERSONNELLES — étoiles 1 à 5 et favori
+   ---------------------------------------------------------------------
+   Deux jugements de nature différente, délibérément séparés :
+     · r (0–5)  la NOTE, portée sur une recette déjà cuisinée ;
+     · w (0/1)  le FAVORI, qui distingue la poignée de recettes qu'on refait
+                sans hésiter parmi toutes celles bien notées.
+   Cinq étoiles disent « c'était très bon » ; le cœur dit « celle-là, je la
+   refais ». Ce ne sont pas les mêmes recettes, d'où deux champs.
+
+   OÙ VIVENT LES NOTES — et pourquoi deux endroits
+   -----------------------------------------------
+   Une page ouverte en file:// ne peut PAS écrire dans son propre dossier :
+   aucun navigateur ne l'autorise. D'où deux couches :
+
+     1. localStorage (clé carnet_notes) — écriture immédiate à chaque clic.
+        Vit dans le profil du navigateur. Survit à la fermeture du fichier,
+        au redémarrage de la machine. Ne survit PAS à un nettoyage des
+        données de navigation, et ne suit pas sur un autre navigateur.
+     2. recettes-notes.js — l'export sur disque, déclenché à la main.
+        Rechargé au démarrage comme socle. C'est la copie durable, celle
+        qu'on sauvegarde avec le reste du dossier et que l'agent peut lire.
+
+   FUSION : chaque entrée porte son horodatage t. Au chargement, disque et
+   navigateur sont fusionnés recette par recette, la plus récente gagne.
+   Un export ancien ne peut donc pas écraser une note récente, ni l'inverse.
+   ===================================================================== */
+const NOTES_KEY="carnet_notes", NOTES_EXPORT_KEY="carnet_notes_export_t";
+let NOTES={};
+
+function notesLire(){
+  const disque=(window.NOTES_DISQUE && typeof window.NOTES_DISQUE==="object") ? window.NOTES_DISQUE : {};
+  let local={};
+  try{ local=JSON.parse(localStorage.getItem(NOTES_KEY)||"{}")||{}; }catch(e){ local={}; }
+  const out={}, ids=new Set(Object.keys(disque).concat(Object.keys(local)));
+  ids.forEach(id=>{
+    const a=disque[id], b=local[id];
+    const n = !a ? b : !b ? a : ((b.t||0)>=(a.t||0) ? b : a);
+    if(n && (n.r || n.w || n.img!==undefined)){
+      out[id]={r:+n.r||0, w:n.w?1:0, t:+n.t||0};
+      // img absent = pas de remplacement ; img:"" = image retirée volontairement
+      if(n.img!==undefined){ out[id].img=String(n.img); out[id].imgWeb=n.imgWeb?1:0; }
+    }
+  });
+  /* Purge des photos encapsulées en « data: ». Une version antérieure
+     pouvait enregistrer une photo À L'INTÉRIEUR du fichier de notes quand
+     l'accès au dossier échouait. Ce repli est supprimé : il éparpillait les
+     images entre deux endroits, ce qui coûte plus cher que le service rendu.
+     Les entrées de ce type sont donc effacées au chargement — la note et le
+     favori de la recette, eux, sont conservés. */
+  Object.keys(out).forEach(id=>{
+    const v=out[id].img;
+    if(typeof v==="string" && v.slice(0,5)==="data:"){
+      delete out[id].img; delete out[id].imgWeb;
+      if(!out[id].r && !out[id].w) delete out[id];
+    }
+  });
+  NOTES=out;
+  notesEcrire();
+}
+function notesEcrire(){
+  try{ localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); }catch(e){}
+}
+function noteDe(id){ return NOTES[id] || {r:0,w:0,t:0}; }
+function noterRecette(id, champ, valeur){
+  const n=Object.assign({r:0,w:0,t:0}, NOTES[id]);
+  if(valeur===undefined) delete n[champ]; else n[champ]=valeur;
+  n.t=Date.now();
+  if(!n.r && !n.w && n.img===undefined) delete NOTES[id]; else NOTES[id]=n;
+  notesEcrire();
+  majIndicateurNotes();
+}
+
+/* =====================================================================
+   QUELLE IMAGE AFFICHER
+   ---------------------------------------------------------------------
+   recettes-data.js n'est JAMAIS modifié par la page : il appartient à
+   l'agent d'ingestion. Un changement d'image est donc enregistré comme un
+   REMPLACEMENT dans le fichier de notes, qui appartient à la page. Deux
+   fichiers, deux propriétaires, aucun conflit possible entre eux — et le
+   retour à l'image d'origine reste toujours possible, puisqu'elle n'a
+   jamais été écrasée.
+   ===================================================================== */
+/* Vignette sans photo : le titre composé en affiche (rôle d'illustration,
+   donc masqué aux lecteurs d'écran, qui lisent déjà le vrai titre). */
+function phTitreHtml(t){ return `<div class="ph ph-titre" aria-hidden="true"><span>${t}</span></div>`; }
+function phTitre(img){
+  const c=img.closest(".card"), t=c ? c.querySelector(".card-title").textContent : "";
+  img.insertAdjacentHTML("afterend", phTitreHtml(t.replace(/</g,"&lt;"))); img.remove(); requestAnimationFrame(ajusterTitres);
+}
+function ajusterTitres(){
+  document.querySelectorAll(".ph-titre").forEach(box=>{
+    const sp=box.firstElementChild; if(!sp) return;
+    sp.style.fontSize="";
+    let fs=parseFloat(getComputedStyle(sp).fontSize), garde=0;
+    while(sp.offsetHeight>box.clientHeight-4 && fs>9 && garde++<20){ fs-=1; sp.style.fontSize=fs+"px"; }
+  });
+}
+(function(){
+  let t=null;
+  window.addEventListener("resize",()=>{ clearTimeout(t); t=setTimeout(ajusterTitres,120); });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>ajusterTitres());
+})();
+function imageDe(r){
+  const n=NOTES[r.id];
+  if(n && n.img!==undefined) return {src:n.img, web:!!n.imgWeb, perso:true};
+  return {src:r.image||"", web:!!r.imageWeb, perso:false};
+}
+/* nombre de notes postérieures au dernier export sur disque */
+function notesNonExportees(){
+  let ts=0; try{ ts=+localStorage.getItem(NOTES_EXPORT_KEY)||0; }catch(e){}
+  return Object.values(NOTES).filter(n=>(n.t||0)>ts).length;
+}
+
+/* --- rendu des contrôles ------------------------------------------------
+   aria-label explicite sur chaque étoile : lues seules par un lecteur
+   d'écran, cinq « ★ » ne disent rien. */
+function starsHtml(id){
+  const n=noteDe(id); let h='<div class="stars" role="group" aria-label="Note sur 5">';
+  for(let v=5;v>=1;v--)
+    h+='<button type="button" class="st'+(v<=n.r?' on':'')+'" data-note="'+id+'" data-v="'+v+'"'+
+       ' aria-label="'+v+' étoile'+(v>1?'s':'')+'" title="'+v+'/5">'+(v<=n.r?'★':'☆')+'</button>';
+  return h+'</div>';
+}
+/* Le champ w portait « à tester ». Il porte maintenant le FAVORI : un
+   jugement, comme la note, et non plus une intention. Le nom du champ est
+   conservé pour ne pas invalider les fichiers de notes déjà exportés. */
+function wishHtml(id){
+  const n=noteDe(id);
+  return '<button type="button" class="wish" data-wish="'+id+'" aria-pressed="'+(n.w?'true':'false')+
+         '" aria-label="Favori" title="'+(n.w?'Retirer des favoris':'Mettre en favori')+'">'+
+         (n.w?'♥':'♡')+'</button>';
+}
+function noteRowHtml(id){
+  const n=noteDe(id);
+  return '<div class="note-row">'+starsHtml(id)+wishHtml(id)+
+    (n.r?'<button type="button" class="note-clear" data-unrate="'+id+'" title="Effacer la note" aria-label="Effacer la note">×</button>':'')+
+    '</div>';
+}
+/* Un seul écouteur délégué sur tout le document : les cartes sont réécrites
+   en permanence, rebrancher les boutons à chaque rendu serait une source de
+   fuite.
+   EN PHASE DE CAPTURE (le true final), et c'est indispensable : l'ouverture
+   de la recette est branchée sur .card, donc en phase de remontée elle se
+   déclencherait AVANT un écouteur posé sur document. Cliquer une étoile
+   ouvrait alors la recette. En capture, document voit le clic en premier et
+   stopPropagation le retient avant qu'il n'atteigne la carte. */
+document.addEventListener("click", function(e){
+  const st=e.target.closest("[data-note]");
+  if(st){ e.stopPropagation(); e.preventDefault();
+    const id=st.dataset.note, v=+st.dataset.v;
+    noterRecette(id,"r", noteDe(id).r===v ? 0 : v); rafraichirNotes(id); return; }
+  const w=e.target.closest("[data-wish]");
+  if(w){ e.stopPropagation(); e.preventDefault();
+    const id=w.dataset.wish; noterRecette(id,"w", noteDe(id).w?0:1); rafraichirNotes(id); return; }
+  const c=e.target.closest("[data-unrate]");
+  if(c){ e.stopPropagation(); e.preventDefault();
+    const id=c.dataset.unrate; noterRecette(id,"r",0); rafraichirNotes(id); return; }
+}, true);
+/* Redessine les contrôles de CETTE recette sans reconstruire la grille :
+   re-rendre 119 cartes à chaque étoile ferait sauter le défilement. */
+function rafraichirNotes(id){
+  const n=noteDe(id);
+  document.querySelectorAll('.note-row').forEach(row=>{
+    if(!row.querySelector('[data-note="'+CSS.escape(id)+'"]')) return;
+    row.outerHTML=noteRowHtml(id);
+  });
+  const card=document.querySelector('.card[data-id="'+CSS.escape(id)+'"]');
+  if(card) card.toggleAttribute("data-noted", !!(n.r||n.w));
+  // Les compteurs de la facette « Mes notes » deviennent faux dès qu'on note
+  // depuis une carte : on les reconstruit. C'est la colonne seule, pas la
+  // grille — re-rendre 119 cartes à chaque étoile ferait sauter le défilement.
+  if(typeof renderFacets==="function") renderFacets();
+  if(noteFiltre) renderAll();
+}
+notesLire();
+const RAYON_ORDER = ["Fruits & légumes","Herbes fraîches","Crémerie & frais","Boucherie & poissonnerie",
+  "Féculents & secs","Sauces & condiments","Huiles & vinaigres","Épicerie & conserves",
+  "Épices & assaisonnements","Divers"];
+// Filet de sécurité : la liste de courses n'affiche que les rayons présents dans
+// RAYON_ORDER. Un rayon inconnu (ajouté au registre mais pas ici) ferait donc
+// DISPARAÎTRE ses articles en silence — on le rabat sur « Divers » pour qu'il
+// reste visible, et on le signale en console pour qu'il soit ajouté ci-dessus.
+const RAYONS_INCONNUS = new Set();
+function rayonOf(item){
+  const r = RAYON_OF[item];
+  if(!r) return "Divers";
+  if(RAYON_ORDER.indexOf(r) === -1){
+    if(!RAYONS_INCONNUS.has(r)){
+      RAYONS_INCONNUS.add(r);
+      console.warn(`[recettes] Rayon absent de RAYON_ORDER : « ${r} » — articles rangés dans « Divers ». Ajoute-le à RAYON_ORDER.`);
+    }
+    return "Divers";
+  }
+  return r;
+}
+
+const TAG_FACET = {};
+for(const [f,tags] of Object.entries(FACETTES)) tags.forEach(t=>TAG_FACET[t]=f);
+
+/* La liste d'accueil est regroupée par type de plat. Une recette peut porter
+   plusieurs tags de cette facette (ex. "Plat" + "Petit-déjeuner") : elle est
+   rangée sous le PREMIER dans l'ordre de FACETTES, pour n'apparaître qu'une
+   fois. Les recettes sans tag de type vont dans "Autres". */
+const TYPE_FACET = "Type de plat";
+const TYPE_TAGS = FACETTES[TYPE_FACET] || [];
+function typeOf(r){ return TYPE_TAGS.find(t=>(r.tags||[]).includes(t)) || "Autres"; }
+let modeOverride={}; // surcharge ET/OU choisie dans l'interface (session)
+function facetMode(f){
+  const m = modeOverride[f] ?? FMODE[f] ?? "OU";
+  return String(m).toUpperCase()==="ET" ? "ET" : "OU";
+}
+
+/* Vue courante, exposée en attribut pour le CSS : "list" | "detail" | "planner".
+   En mode "planner", la colonne de gauche masque ses filtres (le planificateur
+   a les siens) et le bouton devient un retour. */
+function setView(v){
+  document.documentElement.setAttribute("data-view", v);
+  const b = $("#planBtn"); if(!b) return;
+  const inPlanner = (v === "planner");
+  b.textContent = inPlanner ? "← Retour aux recettes" : "Planifier mes courses";
+}
+
+let selected = new Set();
+let search = "";
+let listScroll = 0;
+let noteFiltre = "";      // "" | "favoris" | "5" | "4+" | "3+" | "non-notee"
+let triNote = false;      // false = ordre du carnet ; true = mieux notées d'abord
+
+function fmtNum(n){
+  n=Math.abs(n);
+  let whole=Math.floor(n+1e-9), frac=n-whole;
+  const map=[[0.25,"¼"],[0.333,"⅓"],[0.5,"½"],[0.667,"⅔"],[0.75,"¾"]];
+  let best=null,bd=0.06;
+  for(const [v,g] of map){const d=Math.abs(frac-v);if(d<bd){bd=d;best=g;}}
+  if(frac<0.06){best=null;whole=Math.round(n);}
+  if(best) return (whole>0?whole+" ":"")+best;
+  let r=Math.round(n*10)/10;
+  return r%1===0?r.toFixed(0):r.toFixed(1);
+}
+function fmtTime(min){
+  if(min==null) return null;
+  const h=Math.floor(min/60), m=min%60;
+  return h?(m?`${h} h ${m}`:`${h} h`):`${m} min`;
+}
+function qtyText(ing,factor){
+  if(ing.qty==null) return ing.unit||"—";
+  const q=ing.qty*factor;
+  return (fmtNum(q)+(ing.unit?` ${ing.unit}`:"")).trim();
+}
+
+function passeNote(r){
+  if(!noteFiltre) return true;
+  const n=noteDe(r.id);
+  if(noteFiltre==="favoris")   return !!n.w;
+  if(noteFiltre==="non-notee") return !n.r;
+  if(noteFiltre==="5")  return n.r===5;
+  if(noteFiltre==="4+") return n.r>=4;
+  if(noteFiltre==="3+") return n.r>=3;
+  return true;
+}
+function matchesSel(r, sel){
+  if(!passeNote(r)) return false;
+  if(search){
+    const q=search.toLowerCase();
+    const hit = r.title.toLowerCase().includes(q)
+      || (r.tags||[]).some(t=>t.toLowerCase().includes(q))
+      || r.ingredients.some(i=>i.item.toLowerCase().includes(q));
+    if(!hit) return false;
+  }
+  // Entre facettes : toujours ET. Au sein d'une facette : ET ou OU selon FACETTES_MODE.
+  const byFacet={};
+  sel.forEach(t=>{const f=TAG_FACET[t]||"_";(byFacet[f]=byFacet[f]||[]).push(t);});
+  for(const [f,tags] of Object.entries(byFacet)){
+    const rtags=r.tags||[];
+    if(facetMode(f)==="ET"){
+      if(!tags.every(t=>rtags.includes(t))) return false;
+    }else{
+      if(!tags.some(t=>rtags.includes(t))) return false;
+    }
+  }
+  return true;
+}
+function matches(r){ return matchesSel(r, selected); }
+function filtered(){ return RECETTES.filter(matches); }
+
+// Compteur d'un tag : ignore les tags de SA PROPRE facette (qui s'uniraient à lui),
+// ne tient compte que des filtres des autres facettes + de la recherche.
+function facetCount(t){
+  const f=TAG_FACET[t];
+  const hypo=new Set([...selected].filter(x=>TAG_FACET[x]!==f));
+  hypo.add(t);
+  return RECETTES.filter(r=>matchesSel(r,hypo)).length;
+}
+
+function renderFacets(){
+  const box=$("#facets");
+  let html="";
+  for(const [facet,tags] of Object.entries(FACETTES)){
+    const present=tags.filter(t=>RECETTES.some(r=>(r.tags||[]).includes(t)));
+    if(!present.length) continue;
+    const mode=facetMode(facet);
+    const toggle = present.length>1
+      ? `<button class="modebtn ${mode==='ET'?'et':''}" data-facet="${facet}" title="ET = la recette porte tous les tags choisis · OU = au moins un">${mode}</button>`
+      : ``;
+    const nOn=present.filter(t=>selected.has(t)).length;
+    const ferme=facetsFermees.has(facet);
+    html+=`<div class="facet${ferme?' closed':''}" data-facetbox="${facet}">`+
+      `<div class="facet-head">`+
+        `<button type="button" class="facet-name label" data-toggle="${facet}" aria-expanded="${!ferme}">`+
+          `<span class="facet-caret">▾</span>${facet}`+
+          (nOn?`<span class="facet-on">${nOn}</span>`:``)+
+        `</button>${toggle}</div><div class="chips">`;
+    for(const t of present){
+      const on=selected.has(t);
+      const n=facetCount(t);
+      html+=`<span class="chip ${on?'on':''}" data-tag="${t}">${t}<span class="n">${n}</span></span>`;
+    }
+    html+=`</div></div>`;
+  }
+
+  /* --- facette « Mes notes » -------------------------------------------
+     Ce n'est pas une facette de tags : la note ne vit pas dans les données
+     de la recette mais dans les notes personnelles. Elle est donc à choix
+     unique (recliquer désélectionne), là où les vraies facettes cumulent. */
+  const compte = {
+    "5":       RECETTES.filter(r=>noteDe(r.id).r===5).length,
+    "4+":      RECETTES.filter(r=>noteDe(r.id).r>=4).length,
+    "3+":      RECETTES.filter(r=>noteDe(r.id).r>=3).length,
+    "favoris": RECETTES.filter(r=>noteDe(r.id).w).length,
+    "non-notee":RECETTES.filter(r=>!noteDe(r.id).r).length
+  };
+  const nf=[["favoris","♥ Favoris"],["5","★★★★★"],["4+","★★★★ et +"],["3+","★★★ et +"],["non-notee","Pas encore notée"]];
+  const ferme=facetsFermees.has("Mes notes");
+  html+=`<div class="facet${ferme?' closed':''}" data-facetbox="Mes notes">`+
+    `<div class="facet-head"><button type="button" class="facet-name label" data-toggle="Mes notes" aria-expanded="${!ferme}">`+
+    `<span class="facet-caret">▾</span>Mes notes`+(noteFiltre?`<span class="facet-on">1</span>`:``)+
+    `</button></div><div class="chips">`+
+    nf.map(([k,lbl])=>`<span class="chip ${noteFiltre===k?'on':''}" data-note-f="${k}">${lbl}<span class="n">${compte[k]}</span></span>`).join("")+
+    `</div></div>`;
+
+  box.innerHTML=html;
+  box.querySelectorAll(".modebtn").forEach(b=>{
+    b.onclick=(e)=>{e.stopPropagation();const f=b.dataset.facet; modeOverride[f]=(facetMode(f)==="ET"?"OU":"ET"); renderAll();};
+  });
+  box.querySelectorAll("[data-toggle]").forEach(b=>{
+    b.onclick=()=>{const f=b.dataset.toggle;
+      facetsFermees.has(f)?facetsFermees.delete(f):facetsFermees.add(f);
+      try{ localStorage.setItem("carnet_facettes_fermees", JSON.stringify([...facetsFermees])); }catch(e){}
+      box.querySelector(`[data-facetbox="${CSS.escape(f)}"]`).classList.toggle("closed");
+      b.setAttribute("aria-expanded", String(!facetsFermees.has(f)));
+    };
+  });
+  box.querySelectorAll("[data-note-f]").forEach(c=>{
+    c.onclick=()=>{const k=c.dataset.noteF; noteFiltre=(noteFiltre===k)?"":k; renderAll();};
+  });
+  box.querySelectorAll("[data-tag]").forEach(c=>{
+    c.onclick=()=>{const t=c.dataset.tag; selected.has(t)?selected.delete(t):selected.add(t); renderAll();};
+  });
+}
+
+/* facettes repliées, mémorisées ; toutes ouvertes par défaut */
+let facetsFermees=new Set();
+try{ facetsFermees=new Set(JSON.parse(localStorage.getItem("carnet_facettes_fermees")||"[]")); }catch(e){}
+
+function renderList(){
+  navPushed=false;
+  setView("list");
+  $("#listView").style.display="block";
+  $("#detailView").style.display="none";
+  $("#plannerView").style.display="none";
+  const list=filtered();
+  $("#countH").textContent=`${list.length} recette${list.length>1?'s':''}`;
+  $("#clearBtn").style.display=(selected.size||search)?"inline":"none";
+
+  const sb=$("#sortBar");
+  if(sb){
+    sb.innerHTML=
+      `<button type="button" class="sortbtn${triNote?'':' on'}" data-tri="0">Ordre du carnet</button>`+
+      `<button type="button" class="sortbtn${triNote?' on':''}" data-tri="1">Mieux notées</button>`;
+    sb.querySelectorAll("[data-tri]").forEach(b=>{
+      b.onclick=()=>{ triNote = b.dataset.tri==="1"; renderList(); };
+    });
+  }
+
+  const at=$("#activeTags");
+  at.innerHTML=[...selected].map(t=>
+    `<span class="atag">${t}<button data-tag="${t}">×</button></span>`).join("");
+  at.querySelectorAll("button").forEach(b=>b.onclick=()=>{selected.delete(b.dataset.tag);renderAll();});
+
+  const grid=$("#grid");
+  if(!list.length){grid.innerHTML=`<p class="empty">Aucune recette ne correspond.</p>`;return;}
+
+  let idx=0;
+  const cardHtml=(r,groupe)=>{
+    const total=(r.prep||0)+(r.cook||0);
+    // Vignette absente : bandeau discret, SANS le titre. L'ancien cartouche
+    // répétait le titre juste au-dessus du titre, dans un cadre au format 4/3.
+    const im = imageDe(r);
+    const thumb = im.src
+      ? `<img src="${im.src}" alt="" onerror="phTitre(this)">`
+      : phTitreHtml(r.title);
+    // Le badge « illustration web » est retiré des cartes : il figurait sur 95
+    // des 119 recettes, donc il ne distinguait rien. Il reste sur la fiche,
+    // où l'on regarde vraiment la photo et où sa provenance compte.
+    // Le tag qui répète le titre de groupe déjà affiché au-dessus est écarté.
+    const tags=(r.tags||[]).filter(t=>t!==groupe).slice(0,2).join(" · ");
+    const n=noteDe(r.id);
+    return `<article class="card" tabindex="0" role="link" aria-label="${String(r.title).replace(/"/g,'&quot;')}" data-id="${r.id}"${(n.r||n.w)?' data-noted':''} style="animation-delay:${Math.min(idx++,12)*40}ms"><span class="shine"></span>
+      <div class="thumb">${thumb}</div>
+      <div class="card-body">
+        <div class="card-tags label" style="font-size:10.5px">${tags}</div>
+        <h3 class="card-title">${r.title}</h3>
+        <div class="card-meta">Pour ${r.serves} · ${total?fmtTime(total):"—"}</div>
+        ${noteRowHtml(r.id)}
+      </div></article>`;
+  };
+
+  // On regroupe par type de plat, SAUF si un tag de cette facette est déjà
+  // sélectionné : le filtre répond alors lui-même à la question.
+  // Le tri par note remplace le groupement : deux ordres de lecture
+  // concurrents sur la même grille ne se lisent pas.
+  const grouped = !triNote && ![...selected].some(t=>TAG_FACET[t]===TYPE_FACET);
+  if(grouped){
+    const g={};
+    list.forEach(r=>{ const k=typeOf(r); (g[k]=g[k]||[]).push(r); });
+    grid.innerHTML=[...TYPE_TAGS,"Autres"].filter(t=>g[t]).map(t=>
+      `<h2 class="group-h">${t}<span class="group-n">${g[t].length}</span></h2>`
+      + g[t].map(r=>cardHtml(r,t)).join("")).join("");
+  }else{
+    const ordre = triNote
+      ? list.slice().sort((a,b)=>(noteDe(b.id).r-noteDe(a.id).r) || a.title.localeCompare(b.title,'fr'))
+      : list;
+    grid.innerHTML=ordre.map(r=>cardHtml(r,null)).join("");
+  }
+  grid.querySelectorAll(".card").forEach(c=>{
+    c.onclick=()=>openRecipe(c.dataset.id);
+    c.onkeydown=e=>{ if(e.target===c && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); openRecipe(c.dataset.id); } };
+  });
+  /* L'apparition échelonnée des cartes ne joue qu'au premier affichage :
+     rejouée à chaque filtre, elle retardait d'environ 0,9 s la réponse. */
+  requestAnimationFrame(ajusterTitres);
+  if(!document.documentElement.hasAttribute("data-grid-pret"))
+    setTimeout(()=>document.documentElement.setAttribute("data-grid-pret",""),1000);
+}
+
+let viewServes=1, baseServes=1, currentId=null, detailOrigin="list";
+function openRecipe(id, origin){
+  const r=RECETTES.find(x=>x.id===id); if(!r)return;
+  detailOrigin = origin || "list";
+  if(detailOrigin==="list"){ listScroll=window.scrollY; pushNav(); }
+  currentId=id; viewServes=r.serves; baseServes=r.serves; window.scrollTo(0,0);
+  setView(detailOrigin==="planner" ? "planner" : "detail");
+  $("#listView").style.display="none";
+  $("#plannerView").style.display="none";
+  const d=$("#detailView"); d.style.display="block";
+  const total=(r.prep||0)+(r.cook||0);
+  const metaItem=(lbl,val)=>val?`<div><span class="label">${lbl}</span><b>${val}</b></div>`:"";
+  // Si l'URL externe ne répond plus, on retire AUSSI le badge de provenance :
+  // « illustration web » posé sur un cartouche vide ne désigne plus rien.
+  const im = imageDe(r);
+  // Sans photo, la fiche n'affiche aucun bandeau : le titre est juste au-dessus.
+  const hero = im.src
+    ? `<img src="${im.src}" alt="" onerror="const h=this.closest('.d-hero');const s=document.querySelector('.img-src');if(s)s.textContent='image d\\'origine introuvable';if(h)h.remove();">`
+    : "";
+  const heroWeb = (im.src && im.web) ? `<span class="webbadge" title="Image trouvée en ligne — illustration, pas forcément la recette exacte">illustration web</span>` : "";
+  const origine = im.perso
+    ? (im.web ? "adresse web que tu as choisie"
+              : (im.src ? "ta photo : "+im.src : "image retirée"))
+    : (r.image ? "image d'origine de la recette" : "aucune image");
+  const accesOk = (etatAcces()==="accorde");
+  const barreImage = `
+    <div class="d-imgbar">
+      <button type="button" class="imgbtn" id="imgBtn" aria-expanded="false" aria-controls="imgPanel">${im.src?"Image…":"Ajouter une image…"}</button>
+      <span class="img-src">${origine}</span>
+    </div>
+    <div class="img-panel" id="imgPanel" hidden>
+      <div class="img-row">
+        <button type="button" class="imgbtn" id="imgChoisir">Choisir une photo sur l'ordinateur…</button>
+        ${im.src?`<button type="button" class="imgbtn" id="imgRetirer">Retirer l'image</button>`:``}
+        ${im.perso?`<button type="button" class="imgbtn" id="imgRetablir">Rétablir l'image d'origine</button>`:``}
+      </div>
+      <div class="img-row">
+        <input type="url" class="img-url" id="imgUrl" placeholder="…ou coller une adresse https://" value="${(im.perso&&im.web)?im.src:''}">
+        <button type="button" class="imgbtn" id="imgUrlOk">Utiliser</button>
+      </div>
+      <p id="imgEtat"></p>
+      ${accesOk?``:`<div class="img-row"><button type="button" class="imgbtn" id="imgAutoriser">Autoriser l'accès au dossier du carnet…</button></div>`}
+      <p>La photo est redimensionnée à ${IMG_MAX_PX} px et écrite dans <b>images/</b>. La recette n'est pas modifiée : le remplacement vit dans tes notes, « rétablir » ramène l'image d'origine.</p>
+    </div>`;
+  d.innerHTML=`
+    <button class="back" onclick="goList()">← Retour</button>
+    <div class="d-tags">${(r.tags||[]).map(t=>`<span class="d-tag">${t}</span>`).join("")}</div>
+    <h1 class="d-title">${r.title}</h1>
+    ${hero?`<div class="d-hero">${hero}${heroWeb}</div>`:""}
+    <div class="d-meta">
+      ${metaItem("Préparation",fmtTime(r.prep))}
+      ${metaItem("Cuisson",fmtTime(r.cook))}
+      ${metaItem("Total",total?fmtTime(total):null)}
+    </div>
+    <div class="d-cols">
+      <div>
+        <h3 class="label sec-h">Ingrédients</h3>
+        <div class="serve">
+          <button onclick="bump(-1)" aria-label="Une personne de moins">–</button>
+          <span class="val"><b id="sv">${viewServes}</b> pers.</span>
+          <button onclick="bump(1)" aria-label="Une personne de plus">+</button>
+        </div>
+        <p class="serve-base" id="svBase" hidden>recette d'origine : ${r.serves} pers.</p>
+        <ul class="ing" id="ingList"></ul>
+      </div>
+      <div>
+        <h3 class="label sec-h">Préparation</h3>
+        <ol class="steps">${r.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+        ${r.notes?`<div class="notes">${r.notes}</div>`:""}
+      </div>
+    </div>
+    <!-- Ce qui ne sert pas pendant qu'on cuisine vient après la recette :
+         on note un plat une fois qu'on l'a fait, et l'image se gère au calme. -->
+    <div class="d-fin">
+      <div class="d-note">
+        <span class="note-lbl">Ma note</span>${noteRowHtml(r.id)}
+      </div>
+      ${barreImage}
+    </div>`;
+  renderIngredients();
+  const brancher=(cle,fn)=>{ const el=document.getElementById(cle); if(el) el.onclick=fn; };
+  brancher("imgBtn", basculerPanneauImage);
+  brancher("imgChoisir", ()=>poserPhoto(id));
+  brancher("imgRetirer", ()=>retirerImage(id));
+  brancher("imgRetablir", ()=>retablirImage(id));
+  brancher("imgUrlOk", ()=>poserUrlImage(id));
+  brancher("imgAutoriser", ()=>autoriserDossier(id));
+  animateView($("#detailView"));
+}
+function goList(){ if(detailOrigin==="planner"){ showPlannerResults(); } else { renderList(); window.scrollTo(0,listScroll); animateView($("#listView")); } }
+function bump(d){viewServes=Math.max(1,Math.min(50,viewServes+d));var b=$("#sv");b.textContent=viewServes;b.classList.remove("bump");void b.offsetWidth;b.classList.add("bump");var sb=$("#svBase");if(sb)sb.hidden=(viewServes===baseServes);renderIngredients(true);}
+function renderIngredients(flash){
+  const r=RECETTES.find(x=>x.id===currentId);
+  const factor=viewServes/r.serves;
+  $("#ingList").innerHTML=r.ingredients.map((i,idx)=>{
+    const w=i.warn?`<button class="wbtn" onclick="toggleW(${idx})" title="Assaisonnement">!</button>`:"";
+    const msg=i.warn?`<div class="wmsg">L'assaisonnement n'évolue pas proportionnellement à la quantité — ajuste au goût.</div>`:"";
+    const prep=i.prep?`<span class="prep"> · ${i.prep}</span>`:"";
+    return `<li id="ing${idx}">
+      <div class="row"><span class="name">${i.item}${prep}</span>
+      <span class="q${flash?' flash':''}">${qtyText(i,factor)}${w}</span></div>
+      ${msg}
+    </li>`;
+  }).join("");
+  if(flash){ setTimeout(function(){ document.querySelectorAll("#ingList .q.flash").forEach(function(q){q.classList.remove("flash");}); }, 280); }
+}
+function toggleW(idx){$("#ing"+idx).classList.toggle("open");}
+
+/* =====================================================================
+   PLANIFICATEUR DE COURSES
+   Étape 1 : choix des "envies" (tags) + nb de recettes + nb de personnes.
+   Étape 2 : tirage ALÉATOIRE de recettes + liste de courses agrégée.
+   Les tags sont des ENVIES : une recette est éligible si elle porte AU
+   MOINS UN des tags choisis (OU global, pas un ET strict). Sans tag,
+   toutes les recettes sont éligibles.
+   ===================================================================== */
+let planSel = new Set();     // envies pour le tirage au hasard (logique OU)
+let planCount = 3;
+let planPersons = 2;
+let drawnIds = [];           // le menu courant (recettes tirées OU choisies)
+
+// --- état du sélecteur de recettes réutilisable (choix manuel / remplacement) ---
+let pickerReturn = "setup";  // "setup" | "menu" : où revenir en arrière
+let pickerMode = "manual";   // "manual" (multi-sélection) | "replace" (une seule)
+let pickerReplaceId = null;   // id de la recette à remplacer (mode replace)
+let pickerSel = new Set();    // tags de filtrage du sélecteur
+let pickerModeOverride = {};  // bascule ET/OU par facette dans le sélecteur
+let pickerSearch = "";
+let pickerChosen = new Set();  // recettes cochées (mode manual)
+
+function planEligible(){
+  if(planSel.size===0) return RECETTES.slice();
+  return RECETTES.filter(r=>(r.tags||[]).some(t=>planSel.has(t)));
+}
+function shuffle(a){
+  const x=a.slice();
+  for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}
+  return x;
+}
+function planDraw(){
+  const pool=planEligible();
+  drawnIds=shuffle(pool).slice(0,planCount).map(r=>r.id);
+}
+
+function openPlanner(){
+  window.scrollTo(0,0);
+  pushNav();
+  setView("planner");
+  $("#listView").style.display="none";
+  $("#detailView").style.display="none";
+  $("#plannerView").style.display="block";
+  renderPlannerSetup();
+  animateView($("#plannerView"));
+}
+
+function tagChip(t){
+  const on=planSel.has(t);
+  const n=RECETTES.filter(r=>(r.tags||[]).includes(t)).length;
+  if(!n) return "";
+  return `<span class="chip ${on?'on':''}" data-ptag="${t}">${t}<span class="n">${n}</span></span>`;
+}
+
+function renderPlannerSetup(){
+  let facetsHtml="";
+  for(const [facet,tags] of Object.entries(FACETTES)){
+    const chips=tags.map(tagChip).filter(Boolean).join("");
+    if(!chips) continue;
+    facetsHtml+=`<div class="facet"><div class="facet-head"><span class="label">${facet}</span></div><div class="chips">${chips}</div></div>`;
+  }
+  const elig=planEligible().length;
+  const v=$("#plannerView");
+  v.innerHTML=`
+    <button class="back" onclick="goBrowse()">← Retour aux recettes</button>
+    <h1 class="pl-title">Planifier mes courses</h1>
+    <p class="pl-lead">Deux façons de composer ton menu&nbsp;: laisser le carnet tirer des recettes
+      au hasard selon tes envies, ou les choisir toi-même. Dans les deux cas tu obtiens la liste de
+      courses agrégée par rayon, et tu peux ensuite ajuster le menu recette par recette.</p>
+
+    <div class="pl-step">Nombre de personnes</div>
+    <div class="pl-controls">
+      <div class="pl-field">
+        <div class="stepper">
+          <button type="button" onclick="planAdjust('persons',-1)">–</button>
+          <span class="val" id="plPersonsVal">${planPersons}</span>
+          <button type="button" onclick="planAdjust('persons',1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pl-step">Option 1 · Je choisis</div>
+    <div class="pl-controls">
+      <button class="pl-go" type="button" onclick="openManualPicker('setup')">Choisir mes recettes →</button>
+    </div>
+
+    <div class="pl-step">Option 2 · Au hasard</div>
+    <p class="pl-lead" style="margin-bottom:14px">Choisis quelques envies (facultatif — ${elig} recette${elig>1?'s':''} éligible${elig>1?'s':''})&nbsp;: une recette suffit qu'elle réponde à l'une d'elles.</p>
+    <div class="pl-facets" id="plFacets">${facetsHtml}</div>
+    <div class="pl-controls">
+      <div class="pl-field">
+        <span class="label">Nombre de recettes</span>
+        <div class="stepper">
+          <button type="button" onclick="planAdjust('count',-1)">–</button>
+          <span class="val" id="plCountVal">${planCount}</span>
+          <button type="button" onclick="planAdjust('count',1)">+</button>
+        </div>
+      </div>
+      <button class="pl-go ghost" type="button" onclick="planGo()">🎲 Tirer au hasard</button>
+    </div>`;
+  v.querySelectorAll("#plFacets .chip").forEach(c=>{
+    c.onclick=()=>{const t=c.dataset.ptag; planSel.has(t)?planSel.delete(t):planSel.add(t); renderPlannerSetup();};
+  });
+  animateView($("#plannerView"));
+}
+
+function planAdjust(which,d){
+  if(which==="count") planCount=Math.max(1,Math.min(12,planCount+d));
+  else planPersons=Math.max(1,Math.min(50,planPersons+d));
+  const el=$(which==="count"?"#plCountVal":"#plPersonsVal");
+  if(el) el.textContent=(which==="count"?planCount:planPersons);
+}
+
+function planGo(){ planDraw(); showPlannerResults(); }
+
+// Familles d'unités convertibles. La liste de courses fusionne par item ET par
+// unité : sans ça, 70 cl d'eau dans une recette et 500 ml dans une autre font
+// DEUX lignes de courses. On ramène donc chaque unité de la même famille à une
+// unité de base pour l'addition, puis on réaffiche dans l'unité la plus lisible.
+// Les recettes, elles, gardent leur unité d'origine dans la vue détail.
+const UNIT_FAMILY = {
+  "ml":{base:"ml",f:1}, "cl":{base:"ml",f:10}, "dl":{base:"ml",f:100}, "l":{base:"ml",f:1000},
+  "g":{base:"g",f:1},  "kg":{base:"g",f:1000},
+};
+function prettyUnit(qty,unit){
+  if(unit==="ml" && qty>=1000) return {qty:qty/1000, unit:"l"};
+  if(unit==="g"  && qty>=1000) return {qty:qty/1000, unit:"kg"};
+  return {qty,unit};
+}
+
+function buildShoppingList(recs,persons){
+  const norm=s=>s.trim().toLowerCase().replace(/\s+/g,' ');
+  const quantMap=new Map(), plainMap=new Map(), seasonMap=new Map();
+  recs.forEach(r=>{
+    const factor = persons/(r.serves||1);
+    (r.ingredients||[]).forEach(ing=>{
+      if(ing.warn){
+        const k=norm(ing.item), e=seasonMap.get(k)||{item:ing.item,srcs:new Set()};
+        e.srcs.add(r.title); seasonMap.set(k,e); return;
+      }
+      if(ing.qty==null){
+        const k=norm(ing.item), e=plainMap.get(k)||{item:ing.item,texts:new Set(),srcs:new Set()};
+        if(ing.unit) e.texts.add(ing.unit); e.srcs.add(r.title); plainMap.set(k,e); return;
+      }
+      const fam=UNIT_FAMILY[(ing.unit||'').trim()];
+      const u=fam?fam.base:(ing.unit||'');
+      const q=ing.qty*factor*(fam?fam.f:1);
+      const k=norm(ing.item)+'|||'+u, e=quantMap.get(k)||{item:ing.item,unit:u,qty:0,srcs:new Set()};
+      e.qty+=q; e.srcs.add(r.title); quantMap.set(k,e);
+    });
+  });
+  const byItem=(a,b)=>a.item.localeCompare(b.item,'fr');
+  return {
+    quant:[...quantMap.values()].map(e=>Object.assign({},e,prettyUnit(e.qty,e.unit))).sort(byItem),
+    plain:[...plainMap.values()].sort(byItem),
+    season:[...seasonMap.values()].sort(byItem),
+  };
+}
+
+function showPlannerResults(){
+  window.scrollTo(0,0);
+  setView("planner");
+  $("#listView").style.display="none";
+  $("#detailView").style.display="none";
+  $("#plannerView").style.display="block";
+  const recs=drawnIds.map(id=>RECETTES.find(r=>r.id===id)).filter(Boolean);
+  const poolSize=planEligible().length;
+  const shortfall = drawnIds.length < planCount;
+
+  const cards=recs.map(r=>{
+    const total=(r.prep||0)+(r.cook||0);
+    return `<div class="pl-rec">
+      <div class="pl-rtags">${(r.tags||[]).slice(0,3).join(" · ")}</div>
+      <h4 onclick="openRecipe('${r.id}','planner')">${r.title}</h4>
+      <div class="pl-rmeta">Base ${r.serves} pers.${total?` · ${fmtTime(total)}`:""}</div>
+      <div class="pl-rec-actions">
+        <button type="button" onclick="openRecipe('${r.id}','planner')">Voir</button>
+        <button type="button" onclick="openReplacePicker('${r.id}')">Remplacer</button>
+        <button type="button" onclick="removeFromMenu('${r.id}')">Retirer</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  const shop=buildShoppingList(recs,planPersons);
+  const srcTag=e=>e.srcs.size>1?`<span class="src">×${e.srcs.size}</span>`:"";
+  const liQ=e=>`<li><span class="name">${e.item}${srcTag(e)}</span><span class="q">${fmtNum(e.qty)}${e.unit?` ${e.unit}`:""}</span></li>`;
+
+  // "À acheter" regroupé par rayon (via recettes-ingredients.js)
+  const byRayon={};
+  shop.quant.forEach(e=>{const ry=rayonOf(e.item);(byRayon[ry]=byRayon[ry]||[]).push(e);});
+  const quantHtml = RAYON_ORDER.filter(ry=>byRayon[ry]).map(ry=>
+    `<div class="rayon"><h5>${ry}</h5><ul class="shop-list">${byRayon[ry].map(liQ).join("")}</ul></div>`).join("");
+
+  const plainHtml = shop.plain.map(e=>{
+    const t=[...e.texts].join(" / ");
+    return `<li><span class="name">${e.item}${srcTag(e)}</span><span class="q" style="opacity:.7">${t||"—"}</span></li>`;
+  }).join("");
+  const seasonHtml = shop.season.map(e=>`<li><span class="name">${e.item}${srcTag(e)}</span></li>`).join("");
+
+  const sections=[];
+  if(quantHtml) sections.push(`<div class="shop-sec"><h4>À acheter — ${planPersons} pers.</h4><div class="shop-cols">${quantHtml}</div></div>`);
+  if(plainHtml) sections.push(`<div class="shop-sec"><h4>Sans quantité précise (au goût / à volonté)</h4><div class="shop-cols"><ul class="shop-list shop-plain">${plainHtml}</ul></div></div>`);
+  if(seasonHtml) sections.push(`<div class="shop-sec"><h4>Assaisonnements — à ajuster</h4><div class="shop-cols"><ul class="shop-list shop-plain">${seasonHtml}</ul></div></div>`);
+
+  const v=$("#plannerView");
+  v.innerHTML=`
+    <button class="back" onclick="openPlanner()">← Modifier les critères</button>
+    <h1 class="pl-title">Ton menu &amp; tes courses</h1>
+    <div class="pl-resbar">
+      <span class="count-h">${recs.length} recette${recs.length>1?'s':''} · ${planPersons} pers.</span>
+      <button class="clear" type="button" onclick="openManualPicker('menu')">＋ Ajouter une recette</button>
+      <button class="clear" type="button" onclick="planGo()">↻ Relancer le tirage</button>
+      <button class="clear" type="button" onclick="copyIngredients(event)">⧉ Copier les ingrédients</button>
+    </div>
+    ${shortfall?`<p class="pl-note">Seulement ${poolSize} recette${poolSize>1?'s':''} correspond${poolSize>1?'ent':''} à tes envies — toutes ont été retenues.</p>`:""}
+    <div class="pl-recipes">${cards||'<p class="empty">Ton menu est vide — ajoute une recette ou relance un tirage.</p>'}</div>
+    <div class="pl-step">Liste de courses</div>
+    <div class="shop">${sections.join("")||'<p class="empty">Aucun ingrédient.</p>'}</div>`;
+  animateView($("#plannerView"));
+}
+
+function removeFromMenu(id){
+  drawnIds=drawnIds.filter(x=>x!==id);
+  showPlannerResults();
+}
+
+/* ---------------------------------------------------------------------
+   SÉLECTEUR DE RECETTES réutilisable.
+   Deux usages, un seul écran :
+   - "manual"  : multi-sélection pour composer/compléter le menu.
+   - "replace" : sélection d'une seule recette pour en remplacer une du
+                 menu (avec un raccourci « au hasard »).
+   Filtrage par tags identique à l'accueil (ET/OU par facette + recherche).
+   --------------------------------------------------------------------- */
+function pickerFacetMode(f){
+  const m = pickerModeOverride[f] ?? FMODE[f] ?? "OU";
+  return String(m).toUpperCase()==="ET" ? "ET" : "OU";
+}
+function pickerMatchesSel(r, sel){
+  if(pickerSearch){
+    const q=pickerSearch.toLowerCase();
+    const hit = r.title.toLowerCase().includes(q)
+      || (r.tags||[]).some(t=>t.toLowerCase().includes(q))
+      || r.ingredients.some(i=>i.item.toLowerCase().includes(q));
+    if(!hit) return false;
+  }
+  const byFacet={};
+  sel.forEach(t=>{const f=TAG_FACET[t]||"_";(byFacet[f]=byFacet[f]||[]).push(t);});
+  for(const [f,tags] of Object.entries(byFacet)){
+    const rtags=r.tags||[];
+    if(pickerFacetMode(f)==="ET"){ if(!tags.every(t=>rtags.includes(t))) return false; }
+    else { if(!tags.some(t=>rtags.includes(t))) return false; }
+  }
+  return true;
+}
+function pickerMatches(r){ return pickerMatchesSel(r, pickerSel); }
+function pickerFacetCount(t){
+  const f=TAG_FACET[t];
+  const hypo=new Set([...pickerSel].filter(x=>TAG_FACET[x]!==f));
+  hypo.add(t);
+  return RECETTES.filter(r=>pickerMatchesSel(r,hypo)).length;
+}
+
+function openManualPicker(from){
+  pickerReturn = from || "menu";
+  pickerMode = "manual";
+  pickerReplaceId = null;
+  pickerChosen = new Set(drawnIds);   // menu courant pré-coché (vide au départ)
+  pickerSel = new Set(); pickerModeOverride = {}; pickerSearch = "";
+  renderPlannerPicker(true);
+}
+function openReplacePicker(id){
+  pickerReturn = "menu";
+  pickerMode = "replace";
+  pickerReplaceId = id;
+  pickerSel = new Set(); pickerModeOverride = {}; pickerSearch = "";
+  renderPlannerPicker(true);
+}
+
+function renderPlannerPicker(animate){
+  window.scrollTo(0,0);
+  setView("planner");
+  $("#listView").style.display="none";
+  $("#detailView").style.display="none";
+  $("#plannerView").style.display="block";
+  const isReplace = pickerMode==="replace";
+
+  // facettes (chips + bascule ET/OU) comme l'accueil
+  let facetsHtml="";
+  for(const [facet,tags] of Object.entries(FACETTES)){
+    const present=tags.filter(t=>RECETTES.some(r=>(r.tags||[]).includes(t)));
+    if(!present.length) continue;
+    const mode=pickerFacetMode(facet);
+    const toggle = present.length>1
+      ? `<button class="modebtn ${mode==='ET'?'et':''}" data-pfacet="${facet}" title="ET = tous les tags choisis · OU = au moins un">${mode}</button>`
+      : ``;
+    let chips="";
+    for(const t of present){
+      const on=pickerSel.has(t);
+      const n=pickerFacetCount(t);
+      chips+=`<span class="chip ${on?'on':''}" data-pftag="${t}">${t}<span class="n">${n}</span></span>`;
+    }
+    facetsHtml+=`<div class="facet"><div class="facet-head"><span class="label">${facet}</span>${toggle}</div><div class="chips">${chips}</div></div>`;
+  }
+
+  const list=RECETTES.filter(pickerMatches);
+  const cards=list.map((r,idx)=>{
+    const total=(r.prep||0)+(r.cook||0);
+    const picked = !isReplace && pickerChosen.has(r.id);
+    const thumb = r.image
+      ? `<img src="${r.image}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph',textContent:'${r.title.replace(/'/g,"\\'")}'}))">`
+      : `<div class="ph">${r.title}</div>`;
+    return `<article class="card pick ${picked?'picked':''}" data-pid="${r.id}" style="animation-delay:${Math.min(idx,12)*30}ms"><span class="shine"></span>
+      <div class="thumb">${thumb}${picked?'<span class="pickmark">✓</span>':''}</div>
+      <div class="card-body">
+        <div class="card-tags label" style="font-size:10.5px">${(r.tags||[]).slice(0,2).join(" · ")}</div>
+        <h2 class="card-title">${r.title}</h2>
+        <div class="card-meta">Pour ${r.serves}${total?` · ${fmtTime(total)}`:""}</div>
+      </div></article>`;
+  }).join("");
+
+  const backTo = isReplace ? "showPlannerResults()"
+    : (pickerReturn==="setup" ? "renderPlannerSetup()" : "showPlannerResults()");
+  const replTitle = (RECETTES.find(r=>r.id===pickerReplaceId)||{}).title || "";
+  const nChosen = pickerChosen.size;
+  const footer = isReplace
+    ? `<button class="pl-go ghost" type="button" onclick="pickerRandom()">🎲 Au hasard</button>`
+    : `<span class="count-h">${nChosen} recette${nChosen>1?'s':''} sélectionnée${nChosen>1?'s':''}</span>
+       <button class="pl-go" type="button" onclick="confirmManual()" ${nChosen?'':'disabled'}>Suivant →</button>`;
+
+  const v=$("#plannerView");
+  v.innerHTML=`
+    <button class="back" onclick="${backTo}">← Retour</button>
+    <h1 class="pl-title">${isReplace?"Remplacer une recette":"Choisir mes recettes"}</h1>
+    <p class="pl-lead">${isReplace
+      ? `Choisis la recette qui remplacera «&nbsp;${replTitle}&nbsp;», ou tire-en une au hasard.`
+      : `Filtre par tags comme sur l'accueil, puis coche les recettes de ton choix.`}</p>
+    <div class="pick-bar">
+      <div class="search-wrap" style="flex:1;min-width:180px;max-width:300px">
+        <input id="pickSearch" class="search" type="search" placeholder="Rechercher…" autocomplete="off" value="${pickerSearch.replace(/"/g,'&quot;')}">
+      </div>
+      <div class="pick-foot">${footer}</div>
+    </div>
+    <div class="pl-facets pick-facets">${facetsHtml}</div>
+    <div class="grid pick-grid">${cards||'<p class="empty">Aucune recette ne correspond.</p>'}</div>`;
+
+  v.querySelectorAll(".modebtn").forEach(b=>{
+    b.onclick=()=>{const f=b.dataset.pfacet; pickerModeOverride[f]=(pickerFacetMode(f)==="ET"?"OU":"ET"); renderPlannerPicker(false);};
+  });
+  v.querySelectorAll(".pick-facets .chip").forEach(c=>{
+    c.onclick=()=>{const t=c.dataset.pftag; pickerSel.has(t)?pickerSel.delete(t):pickerSel.add(t); renderPlannerPicker(false);};
+  });
+  v.querySelectorAll(".card.pick").forEach(c=>{
+    c.onclick=()=>{ const id=c.dataset.pid;
+      if(isReplace){ pickChoose(id); }
+      else { pickerChosen.has(id)?pickerChosen.delete(id):pickerChosen.add(id); renderPlannerPicker(false); }
+    };
+  });
+  const ps=$("#pickSearch");
+  if(ps){ ps.addEventListener("input", function(){
+      const pos=this.selectionStart; pickerSearch=this.value.trim(); renderPlannerPicker(false);
+      const p2=$("#pickSearch"); if(p2){ p2.focus(); try{p2.setSelectionRange(pos,pos);}catch(_){}} }); }
+  if(animate) animateView($("#plannerView"));
+}
+
+function confirmManual(){
+  if(!pickerChosen.size) return;
+  drawnIds=[...pickerChosen];
+  showPlannerResults();
+}
+function pickChoose(id){   // remplacement par la recette choisie
+  drawnIds=drawnIds.map(x=>x===pickerReplaceId?id:x);
+  showPlannerResults();
+}
+function pickerRandom(){   // remplacement par une recette au hasard (hors menu)
+  const inMenu=new Set(drawnIds.filter(x=>x!==pickerReplaceId));
+  const pool=RECETTES.filter(r=>!inMenu.has(r.id) && r.id!==pickerReplaceId);
+  if(!pool.length) return;
+  const repl=pool[Math.floor(Math.random()*pool.length)].id;
+  drawnIds=drawnIds.map(x=>x===pickerReplaceId?repl:x);
+  showPlannerResults();
+}
+
+// Liste des ingrédients à copier : ordonnée par rayon, mais SANS en-têtes de
+// rayon, sans noms de recettes, sans tirets et sans ligne vide entre les
+// rayons. Chaque ingrédient n'apparaît qu'une fois.
+function shoppingListClean(){
+  const recs=drawnIds.map(id=>RECETTES.find(r=>r.id===id)).filter(Boolean);
+  const shop=buildShoppingList(recs,planPersons);
+  const seen=new Set(), byR={};
+  const add=(item,text)=>{
+    const key=item.toLowerCase();
+    if(seen.has(key)) return; seen.add(key);
+    const ry=rayonOf(item);
+    (byR[ry]=byR[ry]||[]).push({item,text});
+  };
+  shop.quant.forEach(e=>add(e.item, `${e.item} : ${fmtNum(e.qty)}${e.unit?` ${e.unit}`:""}`));
+  shop.plain.forEach(e=>add(e.item, e.item));
+  shop.season.forEach(e=>add(e.item, e.item));
+  return RAYON_ORDER.filter(ry=>byR[ry]).map(ry=>
+    byR[ry].sort((a,b)=>a.item.localeCompare(b.item,'fr')).map(r=>r.text).join("\n")
+  ).join("\n");
+}
+function copyIngredients(ev){
+  const txt=shoppingListClean();
+  const b=ev&&ev.target;
+  const done=()=>{ if(b){const o=b.textContent;b.textContent="✓ Copié";setTimeout(()=>b.textContent=o,1500);} };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done)); }
+  else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,cb){
+  const ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{document.execCommand("copy");}catch(e){}
+  document.body.removeChild(ta); if(cb)cb();
+}
+function goBrowse(){ renderList(); }
+
+$("#planBtn").onclick=function(){
+  if(document.documentElement.getAttribute("data-view")==="planner") goBrowse();
+  else openPlanner();
+};
+
+function renderAll(){renderFacets();renderList();}
+$("#search").addEventListener("input",e=>{search=e.target.value.trim();renderAll();});
+const _sc=$("#searchClear");
+$("#search").addEventListener("input",function(){ if(_sc) _sc.style.display=this.value?"flex":"none"; });
+if(_sc) _sc.onclick=function(){ search="";$("#search").value="";_sc.style.display="none";renderAll();$("#search").focus(); };
+const _ft=$("#filterToggle");
+if(_ft && window.matchMedia("(max-width:780px)").matches){
+  $("#facets").classList.add("collapsed"); _ft.setAttribute("aria-expanded","false"); _ft.textContent="Filtres ▸";
+}
+if(_ft) _ft.onclick=function(){ const f=$("#facets"); const c=f.classList.toggle("collapsed"); _ft.setAttribute("aria-expanded",String(!c)); _ft.textContent=c?"Filtres ▸":"Filtres ▾"; };
+$("#clearBtn").onclick=()=>{selected.clear();search="";$("#search").value="";if(_sc)_sc.style.display="none";renderAll();};
+/* ---- redimensionnement de la barre latérale ---- */
+(function(){
+  var wrap=document.querySelector(".wrap"), handle=$("#resizeHandle");
+  if(!wrap||!handle) return;
+  try{ var saved=localStorage.getItem("carnet_sideW");
+    if(saved && /^[0-9]+px$/.test(saved)) wrap.style.setProperty("--side-w",saved); }catch(e){}
+  var dragging=false;
+  handle.addEventListener("pointerdown",function(e){ dragging=true; handle.classList.add("drag");
+    try{handle.setPointerCapture(e.pointerId);}catch(_){}
+    document.body.style.userSelect="none"; document.body.style.cursor="col-resize"; e.preventDefault(); });
+  handle.addEventListener("pointermove",function(e){ if(!dragging) return;
+    var w=Math.max(210,Math.min(460,e.clientX)); wrap.style.setProperty("--side-w",w+"px"); });
+  function end(){ if(!dragging) return; dragging=false; handle.classList.remove("drag");
+    document.body.style.userSelect=""; document.body.style.cursor="";
+    try{ localStorage.setItem("carnet_sideW", getComputedStyle(wrap).getPropertyValue("--side-w").trim()); }catch(_){} }
+  handle.addEventListener("pointerup",end);
+  handle.addEventListener("pointercancel",end);
+  handle.addEventListener("dblclick",function(){ wrap.style.setProperty("--side-w","268px");
+    try{ localStorage.setItem("carnet_sideW","268px"); }catch(_){} });
+})();
+
+/* =====================================================================
+   GESTION DES IMAGES DEPUIS LA PAGE
+   ---------------------------------------------------------------------
+   Objectif : un bouton qui ouvre le sélecteur de fichiers de GNOME, et une
+   photo qui atterrit comme VRAI FICHIER dans images/ — pas encapsulée dans
+   un fichier de données. C'est ce qui permet de la téléverser telle quelle
+   vers le dépôt de consultation.
+
+   Le mécanisme est l'API File System Access : showDirectoryPicker() demande
+   UNE FOIS l'accès en écriture au dossier du carnet, et la poignée obtenue
+   est conservée dans IndexedDB. Aux visites suivantes le navigateur ne
+   redemande qu'une confirmation. Vérifié disponible en file:// (contexte
+   sécurisé) sur moteur Chromium — donc Brave.
+
+   REPLI : si le navigateur refuse l'accès au dossier, ou si l'utilisateur
+   le refuse, la photo n'est pas perdue — elle est enregistrée redimensionnée
+   dans le fichier de notes sous forme de donnée encapsulée. Ça marche
+   partout, y compris Firefox, au prix d'un fichier de notes plus lourd.
+
+   Les photos sont TOUJOURS redimensionnées et réencodées avant écriture :
+   une photo d'iPhone brute pèse 3 à 5 Mo, ce qui n'a aucun intérêt pour une
+   vignette et alourdirait le dépôt pour toujours.
+   ===================================================================== */
+const IMG_MAX_PX = 1400, IMG_QUALITE = .82;
+
+/* --- poignée de dossier, conservée entre les sessions ------------------ */
+function idbOuvrir(){
+  return new Promise((ok,ko)=>{
+    const r=indexedDB.open("carnet_fs",1);
+    r.onupgradeneeded=e=>e.target.result.createObjectStore("poignees");
+    r.onsuccess=e=>ok(e.target.result); r.onerror=()=>ko(r.error);
+  });
+}
+function idbLire(cle){
+  return idbOuvrir().then(db=>new Promise(ok=>{
+    const q=db.transaction("poignees").objectStore("poignees").get(cle);
+    q.onsuccess=()=>ok(q.result||null); q.onerror=()=>ok(null);
+  })).catch(()=>null);
+}
+function idbEcrire(cle,val){
+  return idbOuvrir().then(db=>new Promise(ok=>{
+    const tx=db.transaction("poignees","readwrite");
+    tx.objectStore("poignees").put(val,cle);
+    tx.oncomplete=()=>ok(true); tx.onerror=()=>ok(false);
+  })).catch(()=>false);
+}
+
+let dossierCarnet=null;
+
+/* ---------------------------------------------------------------------
+   ACCÈS AU DOSSIER — et pourquoi il est demandé SÉPARÉMENT
+   Première version : on demandait le dossier au milieu de « choisir une
+   photo », donc APRÈS que l'utilisateur avait déjà choisi son fichier. Deux
+   fenêtres natives à la suite, la seconde sans rapport apparent avec ce
+   qu'on venait de faire — on la referme, et la photo part silencieusement
+   dans le repli. C'est exactement ce qui s'est produit.
+   Le repli n'est plus jamais automatique : il faut le demander.
+   --------------------------------------------------------------------- */
+function etatAcces(){
+  if(!window.showDirectoryPicker) return "api-absente";
+  return dossierCarnet ? "accorde" : "inconnu";
+}
+/* Vérifie que le dossier choisi est bien CELUI DU CARNET. Sans ce contrôle,
+   choisir par erreur son dossier personnel y créerait un images/ fantôme et
+   les photos partiraient dans le vide. */
+async function estDossierCarnet(h){
+  try{ await h.getFileHandle("recettes-data.js"); return true; }
+  catch(e){ return false; }
+}
+async function reprendreDossier(){          // sans fenêtre : au chargement
+  if(!window.showDirectoryPicker) return null;
+  if(!dossierCarnet) dossierCarnet = await idbLire("dossier");
+  if(!dossierCarnet) return null;
+  const etat = await dossierCarnet.queryPermission({mode:"readwrite"});
+  if(etat!=="granted"){ return null; }
+  return dossierCarnet;
+}
+/* Demande l'accès. Renvoie {ok:true} ou {ok:false, raison, message}. */
+async function demanderDossier(){
+  if(!window.showDirectoryPicker)
+    return {ok:false, raison:"api-absente",
+      message:"Ce navigateur n'expose pas l'API d'accès aux fichiers. BRAVE LA DÉSACTIVE PAR DÉFAUT : "+
+              "ouvre brave://flags/#file-system-access-api, passe le réglage sur Enabled, relance Brave, "+
+              "et réessaie. (Firefox, lui, ne l'implémente pas du tout.)"};
+  try{
+    if(!dossierCarnet) dossierCarnet = await idbLire("dossier");
+    if(dossierCarnet){
+      let etat = await dossierCarnet.queryPermission({mode:"readwrite"});
+      if(etat==="prompt") etat = await dossierCarnet.requestPermission({mode:"readwrite"});
+      if(etat==="granted" && await estDossierCarnet(dossierCarnet)) return {ok:true};
+      dossierCarnet=null;
+    }
+    const h = await window.showDirectoryPicker({mode:"readwrite", id:"carnet"});
+    if(!(await estDossierCarnet(h)))
+      return {ok:false, raison:"mauvais-dossier",
+        message:"Ce dossier ne contient pas recettes-data.js — ce n'est pas le dossier du carnet. Recommence en choisissant le dossier qui contient recettes.html."};
+    let etat = await h.queryPermission({mode:"readwrite"});
+    if(etat==="prompt") etat = await h.requestPermission({mode:"readwrite"});
+    if(etat!=="granted")
+      return {ok:false, raison:"refus", message:"Écriture refusée sur ce dossier."};
+    dossierCarnet=h; await idbEcrire("dossier",h);
+    return {ok:true};
+  }catch(e){
+    if(e.name==="AbortError")
+      return {ok:false, raison:"annule",
+        message:"Fenêtre fermée sans choisir de dossier. Rien n'a été enregistré."};
+    return {ok:false, raison:e.name,
+      message:"Le navigateur a refusé l'accès au dossier ("+e.name+" : "+e.message+")."};
+  }
+}
+async function dossierImages(){
+  const d = dossierCarnet || await reprendreDossier();
+  if(!d) return null;
+  return await d.getDirectoryHandle("images",{create:true});
+}
+
+/* --- redimensionnement ------------------------------------------------- */
+async function redimensionner(fichier){
+  let bmp;
+  try{ bmp = await createImageBitmap(fichier); }
+  catch(e){
+    throw new Error("Format d'image non lisible par le navigateur. "+
+      "Les photos d'iPhone en HEIC ne sont pas décodables ici — "+
+      "convertis-les en JPEG avant, ou règle l'iPhone sur « Le plus compatible ».");
+  }
+  const ech = Math.min(1, IMG_MAX_PX/Math.max(bmp.width,bmp.height));
+  const l=Math.round(bmp.width*ech), h=Math.round(bmp.height*ech);
+  const c=document.createElement("canvas"); c.width=l; c.height=h;
+  c.getContext("2d").drawImage(bmp,0,0,l,h); bmp.close&&bmp.close();
+  const blob = await new Promise(ok=>c.toBlob(ok,"image/jpeg",IMG_QUALITE));
+  if(!blob) throw new Error("Le réencodage de l'image a échoué.");
+  return blob;
+}
+/* --- choisir un fichier : sélecteur natif ------------------------------- */
+async function choisirFichierImage(){
+  if(window.showOpenFilePicker){
+    const [h] = await window.showOpenFilePicker({
+      id:"photos", multiple:false,
+      types:[{description:"Images", accept:{"image/*":[".jpg",".jpeg",".png",".webp",".avif",".gif"]}}]
+    });
+    return await h.getFile();
+  }
+  // repli : <input type=file> ouvre le même sélecteur GNOME
+  return await new Promise((ok,ko)=>{
+    const i=document.createElement("input"); i.type="file"; i.accept="image/*";
+    i.onchange=()=>i.files[0]?ok(i.files[0]):ko(new Error("Aucun fichier choisi."));
+    i.click();
+  });
+}
+
+/* --- poser une photo sur une recette ------------------------------------
+   Le repli (photo encapsulée dans le fichier de notes) n'est JAMAIS pris
+   tout seul : il faut cliquer un second bouton qui apparaît alors. Une
+   dégradation qui fait perdre la durabilité de la donnée ne doit pas être
+   silencieuse — sinon on croit que c'est enregistré sur le disque alors que
+   ça ne vit que dans le navigateur.
+   ------------------------------------------------------------------------ */
+function direImg(txt, err){
+  const e=document.getElementById("imgEtat");
+  if(e){ e.textContent=txt||""; e.className=err?"err":""; }
+}
+async function autoriserDossier(id){
+  direImg("Choisis le dossier qui contient recettes.html…");
+  const r = await demanderDossier();
+  if(!r.ok){ direImg(r.message, true); return false; }
+  direImg("Accès au dossier accordé. Tu peux maintenant choisir une photo.");
+  if(currentId) openRecipe(currentId, detailOrigin);
+  return true;
+}
+async function poserPhoto(id){
+  let dossier = await dossierImages();
+  if(!dossier){
+    if(!(await autoriserDossier(id))) return;
+    dossier = await dossierImages();
+    if(!dossier){ direImg("Accès au dossier toujours indisponible.", true); return; }
+  }
+  let fichier;
+  try{ fichier = await choisirFichierImage(); }catch(e){ return; }
+  direImg("Traitement de l'image…");
+  let blob;
+  try{ blob = await redimensionner(fichier); }catch(e){ direImg(e.message,true); return; }
+  try{
+    const chemin = await ecrireImage(id, blob, dossier);
+    appliquerImage(id, chemin, 0);
+    direImg("Photo écrite dans "+chemin+" ("+Math.round(blob.size/1024)+" Ko).");
+  }catch(e){ direImg("Écriture impossible dans images/ : "+e.message, true); }
+}
+/* écrit le blob dans images/ sous un nom neuf, et retire la version
+   précédente que NOUS avions écrite (nom neuf = pas d'ennui de cache) */
+async function ecrireImage(id, blob, dossier){
+  const nom = id+"-"+Date.now().toString(36)+".jpg";
+  const fh = await dossier.getFileHandle(nom,{create:true});
+  const w = await fh.createWritable();
+  await w.write(blob); await w.close();
+  const ancienne=(NOTES[id]||{}).img;
+  if(ancienne && ancienne.indexOf("images/")===0){
+    const vieux=ancienne.split("/").pop();
+    if(vieux!==nom && vieux.indexOf(id+"-")===0){ try{ await dossier.removeEntry(vieux); }catch(e){} }
+  }
+  return "images/"+nom;
+}
+function appliquerImage(id, valeur, web){
+  const n=Object.assign({r:0,w:0,t:0}, NOTES[id]);
+  n.img=valeur; n.imgWeb=web?1:0; n.t=Date.now();
+  NOTES[id]=n; notesEcrire(); majIndicateurNotes();
+  if(currentId===id) openRecipe(id, detailOrigin);
+}
+function retirerImage(id){ appliquerImage(id,"",0); }
+function retablirImage(id){
+  noterRecette(id,"imgWeb",undefined);
+  noterRecette(id,"img",undefined);
+  if(currentId===id) openRecipe(id, detailOrigin);
+}
+function poserUrlImage(id){
+  const champ=document.getElementById("imgUrl"); if(!champ) return;
+  const u=champ.value.trim();
+  const etat=document.getElementById("imgEtat");
+  if(!/^https?:\/\//i.test(u)){
+    if(etat){ etat.textContent="Adresse invalide : elle doit commencer par http:// ou https://"; etat.className="err"; }
+    return;
+  }
+  appliquerImage(id,u,1);
+}
+function basculerPanneauImage(){
+  const p=document.getElementById("imgPanel"), b=document.getElementById("imgBtn");
+  if(!p||!b) return;
+  const ouvrir=p.hidden; p.hidden=!ouvrir; b.setAttribute("aria-expanded",String(ouvrir));
+}
+
+/* =====================================================================
+   PANNEAU « MES NOTES » — export et import sur le disque
+   ---------------------------------------------------------------------
+   Le seul pont possible entre une page en file:// et le dossier : un
+   téléchargement que l'utilisateur dépose lui-même. Le fichier produit est
+   du JavaScript exécutable (et non du JSON) pour pouvoir être rechargé par
+   une simple balise <script>, sans fetch — fetch est bloqué en file:// par
+   la politique d'origine de tous les navigateurs.
+   ===================================================================== */
+function majIndicateurNotes(){
+  const b=document.getElementById("notesBtn");
+  if(!b) return;
+  const n=notesNonExportees();
+  b.textContent = n ? `Mes notes (${n} à enregistrer)` : "Mes notes";
+  const panel=document.getElementById("notesPanel");
+  if(panel && !panel.hidden) rendreNotesPanel();
+}
+function rendreNotesPanel(){
+  const panel=document.getElementById("notesPanel");
+  if(!panel) return;
+  const total=Object.keys(NOTES).length;
+  const notees=Object.values(NOTES).filter(n=>n.r).length;
+  const favoris=Object.values(NOTES).filter(n=>n.w).length;
+  const enAttente=notesNonExportees();
+  let ts=0; try{ ts=+localStorage.getItem(NOTES_EXPORT_KEY)||0; }catch(e){}
+  const quand = ts ? new Date(ts).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"}) : "jamais";
+  panel.innerHTML =
+    `<p><b>${notees}</b> recette${notees>1?'s':''} notée${notees>1?'s':''} · <b>${favoris}</b> favori${favoris>1?'s':''}</p>`+
+    (enAttente
+      ? `<p class="warnline">${enAttente} modification${enAttente>1?'s':''} vit${enAttente>1?'vent':''} seulement dans ce navigateur.</p>`
+      : `<p>Tout est enregistré sur le disque.</p>`)+
+    `<p>Dernier enregistrement : ${quand}.</p>`+
+    `<button type="button" class="npbtn primary" id="npExport">Enregistrer sur le disque</button>`+
+    `<button type="button" class="npbtn" id="npImport">Recharger depuis un fichier…</button>`+
+    `<input type="file" id="npFile" accept=".js,.json,application/json,text/javascript" hidden>`+
+    `<p>L'enregistrement télécharge <b>recettes-notes.js</b> : dépose-le dans le dossier du carnet, à côté de recettes.html, en remplaçant l'ancien.</p>`;
+  panel.querySelector("#npExport").onclick=exporterNotes;
+  panel.querySelector("#npImport").onclick=()=>panel.querySelector("#npFile").click();
+  panel.querySelector("#npFile").onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const fr=new FileReader();
+    fr.onload=()=>{ importerNotes(fr.result); e.target.value=""; };
+    fr.readAsText(f);
+  };
+}
+function exporterNotes(){
+  const maintenant=Date.now();
+  const lignes=Object.keys(NOTES).sort().map(id=>{
+    const n=NOTES[id];
+    let champs='"r":'+(n.r||0)+',"w":'+(n.w||0)+',"t":'+(n.t||0);
+    if(n.img!==undefined) champs+=',"img":'+JSON.stringify(n.img)+',"imgWeb":'+(n.imgWeb||0);
+    return '  '+JSON.stringify(id)+': {'+champs+'}';
+  });
+  const contenu = [
+    '/* Notes personnelles du carnet de recettes — étoiles (r, 0 à 5) et',
+    '   favori (w, 0 ou 1). t = horodatage de la dernière',
+    '   modification, utilisé pour fusionner ce fichier avec les notes du',
+    '   navigateur au chargement : la version la plus récente gagne.',
+    '   Généré le '+new Date(maintenant).toLocaleString("fr-BE")+' — écrasable sans risque. */',
+    'window.NOTES_DISQUE = {',
+    lignes.join(',\n'),
+    '};',
+    ''
+  ].join('\n');
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([contenu],{type:"text/javascript;charset=utf-8"}));
+  a.download="recettes-notes.js";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  try{ localStorage.setItem(NOTES_EXPORT_KEY, String(maintenant)); }catch(e){}
+  majIndicateurNotes();
+}
+function importerNotes(texte){
+  let obj=null;
+  try{
+    const m=String(texte).match(/NOTES_DISQUE\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
+    obj=JSON.parse(m ? m[1] : texte);
+  }catch(e){ obj=null; }
+  if(!obj || typeof obj!=="object"){
+    alert("Fichier illisible : ni un recettes-notes.js, ni un JSON de notes.");
+    return;
+  }
+  // même règle de fusion qu'au démarrage : la note la plus récente gagne.
+  let touchees=0;
+  Object.keys(obj).forEach(id=>{
+    const a=obj[id], b=NOTES[id];
+    if(!a || (!a.r && !a.w && a.img===undefined)) return;
+    if(!b || (+a.t||0) > (b.t||0)){
+      NOTES[id]={r:+a.r||0,w:a.w?1:0,t:+a.t||0};
+      if(a.img!==undefined){ NOTES[id].img=String(a.img); NOTES[id].imgWeb=a.imgWeb?1:0; }
+      touchees++; }
+  });
+  notesEcrire(); majIndicateurNotes(); renderAll();
+  alert(touchees ? touchees+" note(s) reprise(s) du fichier." : "Rien de plus récent dans ce fichier.");
+}
+(function(){
+  const btn=document.getElementById("notesBtn"), panel=document.getElementById("notesPanel");
+  if(!btn||!panel) return;
+  btn.onclick=function(e){ e.stopPropagation();
+    const ouvrir=panel.hidden;
+    panel.hidden=!ouvrir; btn.setAttribute("aria-expanded",String(ouvrir));
+    if(ouvrir) rendreNotesPanel();
+  };
+  document.addEventListener("click",function(e){
+    if(panel.hidden) return;
+    if(!panel.contains(e.target) && e.target!==btn){ panel.hidden=true; btn.setAttribute("aria-expanded","false"); }
+  },true);
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape" && !panel.hidden){ panel.hidden=true; btn.setAttribute("aria-expanded","false"); btn.focus(); }
+  });
+  majIndicateurNotes();
+  // si l'accès au dossier a déjà été accordé lors d'une session précédente,
+  // on le reprend sans fenêtre, pour que l'état affiché soit juste.
+  if(window.showDirectoryPicker) reprendreDossier().catch(()=>{});
+})();
+
+/* =====================================================================
+   MENU APPARENCE — style + palette + affichage des images
+   ---------------------------------------------------------------------
+   Trois réglages indépendants, tous mémorisés dans localStorage :
+
+     STYLE    -> <html data-style="glass|vintage|editorial">
+                 La peau complète (polices, rayons, ombres, reflets).
+                 Définie en CSS dans un bloc html[data-style="…"]{…}.
+     PALETTE  -> variables de couleur posées en ligne sur :root.
+                 Chaque style a SES palettes ; le choix est mémorisé
+                 séparément par style.
+     IMAGES   -> <html data-img="on|compact">
+                 "compact" masque toutes les images et densifie les cartes.
+
+   POUR AJOUTER UN STYLE
+     1. Écrire un bloc  html[data-style="<id>"]{…}  dans le CSS.
+     2. Ajouter une entrée dans STYLES ci-dessous (id, name, fonts, palettes).
+   Rien d'autre. Le menu se reconstruit tout seul.
+
+   Champs d'une palette : name, s[5] (fond, du plus soutenu au plus clair),
+   ink, inkSoft, accL, accent, accentD, warn, et onAccent (facultatif :
+   couleur du texte posé SUR l'accent, "#fff" par défaut).
+   ===================================================================== */
+(function(){
+  const STYLES=[
+    {
+      id:"editorial", name:"Éditorial",
+      fonts:["Playfair+Display:ital,wght@0,400;0,500;0,600;1,400"],
+      palettes:[
+        {name:"Encre & papier",  s:["#e6dfd0","#eee8db","#f3eee3","#f7f3ea","#fbf8f1"], ink:"#252119", inkSoft:"#5f574a", accL:"#8f2f26", accent:"#8f2f26", accentD:"#6f231c", warn:"#6d5015"},
+        {name:"Bleu de Prusse",  s:["#dde3e7","#e7ecef","#edf1f3","#f3f5f7","#f9fafb"], ink:"#1a2024", inkSoft:"#4f5960", accL:"#1f4e6b", accent:"#1f4e6b", accentD:"#163a51", warn:"#7d5120"},
+        {name:"Olive",           s:["#e2e2d3","#eaeadc","#f0f0e5","#f5f4ec","#faf9f4"], ink:"#22241a", inkSoft:"#535543", accL:"#4f5b26", accent:"#4f5b26", accentD:"#3b451b", warn:"#7d4220"},
+        {name:"Terre de Sienne", s:["#ecdfd2","#f2e8dd","#f6efe6","#f9f4ee","#fdfaf6"], ink:"#2a1f17", inkSoft:"#63503f", accL:"#9c5423", accent:"#9c5423", accentD:"#77401a", warn:"#3f5f62"},
+        {name:"Prune",           s:["#e6dee2","#ede7ea","#f2eef0","#f7f4f5","#fbf9fa"], ink:"#241c21", inkSoft:"#584c52", accL:"#6d2a4a", accent:"#6d2a4a", accentD:"#521e38", warn:"#6d5015"},
+        {name:"Gris typographe", s:["#e1e1df","#e9e9e7","#efefed","#f5f5f3","#fafaf9"], ink:"#1e1e1c", inkSoft:"#53534c", accL:"#3a3a36", accent:"#3a3a36", accentD:"#23231f", warn:"#7a4620"}
+      ]
+    },
+    {
+      id:"vintage", name:"Vintage",
+      fonts:["Zilla+Slab:ital,wght@0,400;0,500;0,600;0,700;1,400","Alfa+Slab+One"],
+      palettes:[
+        {name:"Rouge cerise",   s:["#e2d5bd","#ebe0cc","#f1e9da","#f6f1e6","#faf6ee"], ink:"#2b2119", inkSoft:"#645344", accL:"#ae292d", accent:"#ae292d", accentD:"#841f22", warn:"#4f5c28", onAccent:"#faf6ee",
+         /* En sombre, l'éclaircissement automatique tirait le rouge vers le saumon.
+            Remplissage = vrai rouge (texte clair dessus : 4,5:1) ; texte d'accent = rouge vif clair (4,5:1). */
+         sombre:{accL:"#d1343b", accent:"#d1343b", accentD:"#ff6b70", onAccent:"#faf6ee"}},
+        {name:"Bleu ardoise",   s:["#d7dde0","#e3e8ea","#ecf0f1","#f3f6f6","#f9fbfb"], ink:"#1f272b", inkSoft:"#4f5b62", accL:"#3a6b8f", accent:"#3a6b8f", accentD:"#26485f", warn:"#8a5320", onAccent:"#f9fbfb"},
+        {name:"Vert avocat",    s:["#dfe0c6","#e8e9d6","#f0f0e3","#f5f5ec","#fafaf4"], ink:"#26281a", inkSoft:"#565941", accL:"#5c6f28", accent:"#5c6f28", accentD:"#40501a", warn:"#9c4a1a", onAccent:"#fafaf4"},
+        {name:"Moutarde",       s:["#e8dcb8","#efe6cb","#f4eeda","#f8f4e8","#fcfaf2"], ink:"#2b2415", inkSoft:"#5e553c", accL:"#8f6410", accent:"#8f6410", accentD:"#6b4a0a", warn:"#8a3a20", onAccent:"#fcfaf2"},
+        {name:"Orange brûlée",  s:["#ecd8c4","#f2e3d3","#f6ece0","#faf4ec","#fdfaf5"], ink:"#2b1d14", inkSoft:"#634d3b", accL:"#ab4d1a", accent:"#ab4d1a", accentD:"#803811", warn:"#3a5a5d", onAccent:"#fdfaf5"},
+        {name:"Sépia",          s:["#e3d9c8","#ece4d6","#f2ece0","#f7f3ea","#fbf9f3"], ink:"#2a2119", inkSoft:"#615345", accL:"#6b5340", accent:"#6b5340", accentD:"#4d3a2b", warn:"#8a3a20", onAccent:"#fbf9f3"}
+      ]
+    },
+    {
+      /* Liquid Glass (3 octobre 2026) : police système, couleurs système Apple.
+         Le sombre n'est PAS calculé : ce sont les valeurs sombres d'Apple,
+         recopiées telles quelles (sombre:{…}). Accent rouge : texte blanc
+         dessus à 5,4:1 en clair, 4,7:1 en sombre. */
+      id:"glass", name:"Liquid Glass",
+      fonts:[],
+      palettes:[
+        {name:"Rouge", s:["#e5e5ea","#ebebf0","#f2f2f7","#f9f9fb","#ffffff"], ink:"#1d1d1f", inkSoft:"#6e6e73", accL:"#d70015", accent:"#d70015", accentD:"#b5000f", warn:"#c93400", onAccent:"#ffffff",
+         sombre:{s:["#000000","#0c0c0d","#161618","#1c1c1e","#2c2c2e"], ink:"#f5f5f7", inkSoft:"#98989f", accL:"#e0242c", accent:"#e0242c", accentD:"#ff6961", warn:"#ff9f0a", onAccent:"#ffffff"}}
+      ]
+    }
+  ];
+
+  const K_STYLE="carnet_style", K_IMG="carnet_img", K_PAL="carnet_pal_", K_OLD="carnet_theme";
+  const K_DARK="carnet_dark";
+  const K_VER="carnet_pref_v";
+
+  /* --- RÉGLAGE PAR DÉFAUT À L'OUVERTURE ---------------------------------
+     Ce qu'on voit la première fois, et ce vers quoi on retombe quand un
+     style n'a jamais reçu de choix de palette. Désignés par id et par NOM
+     (pas par indice) : réordonner les palettes ne casse rien.
+     PREF_V force une remise à ce défaut une seule fois par navigateur ;
+     l'incrémenter refera basculer tout le monde au prochain chargement. */
+  const DEFAULT_STYLE   = window.STYLE_DEFAUT || "vintage";   // voir STYLE_DEFAUT en tête de fichier
+  const DEFAULT_PALETTE = "Rouge cerise";
+  const DEFAULT_DARK    = "auto";   // "auto" = suit le système ; true / false = forcé
+  const PREF_V = "7";
+
+  /* --- THÈME VERROUILLÉ ------------------------------------------------
+     AU CAS OÙ : les six styles et leurs palettes (soit 36 habillages) sont
+     TOUJOURS ENTIÈREMENT PRÉSENTS dans ce fichier — blocs CSS
+     html[data-style="…"] plus haut, et tableau STYLES ci-dessus. Rien n'a
+     été supprimé. Seul l'accès depuis l'interface a été coupé, parce que
+     Val a arrêté son choix (Vintage / Rouge cerise) et qu'un sélecteur de
+     thème à 36 entrées dans une barre latérale déjà chargée coûtait plus
+     d'attention qu'il n'en rapportait.
+
+     POUR TOUT RALLUMER : passer THEME_VERROUILLE à false ci-dessous. Le menu
+     Apparence retrouve ses deux rangées « Style » et « Couleurs », les
+     réglages redeviennent mémorisés par style, et rien d'autre n'est à
+     toucher. Incrémenter PREF_V au passage si l'on veut forcer tout le monde
+     à repartir du défaut.
+
+     Le bouton Clair / Sombre, lui, RESTE dans l'interface : c'est un réglage
+     de confort de lecture (lumière ambiante), pas un choix esthétique.
+     -------------------------------------------------------------------- */
+  /* 3 octobre 2026 : DÉVERROUILLÉ. Les 7 styles sont de nouveau proposés,
+     dans un sélecteur compact (une pastille par style, à son allure).
+     Val fera son choix, puis on supprimera ceux qu'il écarte. */
+  const THEME_VERROUILLE = false;
+  const root=document.documentElement;
+  const bar=document.getElementById("themebar");
+
+  function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+  /* --- polices chargées à la demande (Titillium + Newsreader sont déjà
+         dans le <head> pour que le premier rendu soit juste) --- */
+  const loadedFonts=new Set((STYLES.find(s=>s.id==="vintage")||{fonts:[]}).fonts);   // déjà dans le <head>
+  function ensureFonts(st){
+    const missing=st.fonts.filter(f=>!loadedFonts.has(f));
+    if(!missing.length) return;
+    missing.forEach(f=>loadedFonts.add(f));
+    const l=document.createElement("link");
+    l.rel="stylesheet";
+    l.href="https://fonts.googleapis.com/css2?"+missing.map(f=>"family="+f).join("&")+"&display=swap";
+    document.head.appendChild(l);
+  }
+
+  function hx(h){ h=h.replace('#','');
+    return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+  function rgba(c,a){ return "rgba("+c[0]+","+c[1]+","+c[2]+","+a+")"; }
+
+  /* =====================================================================
+     MODE SOMBRE — dérivé par calcul, pas écrit à la main
+     ---------------------------------------------------------------------
+     Chaque palette n'existe qu'en version claire. La sombre est calculée en
+     conservant la TEINTE de la palette — son identité — et en retravaillant
+     clarté et saturation.
+
+     Deux réglages de nature différente, et c'est tout l'enjeu :
+
+     · Le PAPIER vise une LUMINANCE RELATIVE. C'est elle qui gouverne le
+       contraste, et la clarté HSL n'en dit rien : un violet saturé à 62 %
+       de clarté est aussi sombre qu'un jaune à 35 %.
+
+     · Les ACCENTS visent une CLARTÉ HSL, saturation rehaussée. Les piloter
+       à la luminance était une erreur : pour qu'un rouge atteigne une
+       luminance de 0,50 il doit monter si haut en clarté qu'il vire au rose
+       pâle. Un accent vif, c'est une clarté moyenne et une saturation
+       forte — pas une luminance élevée.
+
+     Ensuite seulement, lift() remonte une couleur JUSQU'À ce qu'elle
+     contraste assez, et pas plus : les teintes intrinsèquement sombres
+     (bleus, violets) sont éclaircies, les autres gardent leur mordant.
+     ===================================================================== */
+  /* paperChroma : part de la chroma du papier clair reportée sur le papier
+     sombre. 1.15 la conservait intégralement — trop chaud sur les crèmes.
+     0.40 n'en garde qu'une trace. Repères sur Vintage/Rouge cerise, écart
+     entre canal rouge et canal bleu de la carte :
+        1.15 -> 14/255 (brun franc)   0.80 -> 9/255   0.60 -> 7/255
+        0.40 ->  5/255              0.20 -> 2/255 (retenu)   0 -> gris neutre     */
+  /* paperChroma = 0 depuis 2026-09 : en sombre, le papier est un gris
+     STRICTEMENT neutre. Toute trace de chroma sur des aplats aussi grands se
+     lisait comme un filtre nuit pose sur le theme clair — l'effet « cheap »
+     que ca produisait valait plus cher que le rappel de teinte. La couleur du
+     theme est portee par l'encre et l'accent, pas par le papier. */
+  const DARK={ paper:[.0070,.0300], paperChroma:0, paperChromaCap:.35,
+               ink:.80, inkSoftLum:.36,
+               accentL:.58, accentDL:.72, warnL:.60, onAccL:.07, onAccSat:.35 };
+
+  /* Surfaces réelles de chaque style : [indice de --skyN, voile blanc].
+     C'est la seule duplication d'un savoir qui vit dans le CSS ; sans elle
+     il faudrait raisonner sur un fond majorant, et tous les accents
+     redeviendraient pâles. À tenir à jour si un bloc de style change ses
+     --surface-*. accentAsText marque les styles où --accent sert de TEXTE
+     (numéros d'étape) et doit donc contraster avec le fond de page. */
+  const SURFACES={
+    editorial:{card:[4,0],   col:[2,0],   page:[4,0], accentAsText:true},
+    vintage:  {card:[4,0],   col:[1,0],   page:[2,0], accentAsText:true},
+    glass:    {card:[4,0],   col:[2,0],   page:[2,0]}
+  };
+
+  function relLum(c){ c=c.map(function(x){ x/=255;
+      return x<=.03928 ? x/12.92 : Math.pow((x+.055)/1.055,2.4); });
+    return .2126*c[0]+.7152*c[1]+.0722*c[2]; }
+  function contrast(a,b){ var l=[relLum(a),relLum(b)].sort(function(x,y){return y-x;});
+    return (l[0]+.05)/(l[1]+.05); }
+  function veil(a,c){ return c.map(function(v){ return 255*a+v*(1-a); }); }
+  /* Chroma « absolue » : simple écart entre canal max et canal min. À la
+     différence de la saturation HSL, elle ne gonfle pas sur les couleurs
+     très claires — un crème #faf6ee n'a que 0,047 de chroma mais 0,54 de
+     saturation HSL. Borner la saturation revenait donc à teinter fortement
+     les fonds sombres : c'est ce qui rendait le Vintage trop chaud. */
+  function chromaOf(c){ var v=hx(c);
+    return (Math.max.apply(null,v)-Math.min.apply(null,v))/255; }
+  function toHsl(c){ c=hx(c).map(function(x){return x/255;});
+    var mx=Math.max.apply(null,c), mn=Math.min.apply(null,c), l=(mx+mn)/2, h=0, sa=0;
+    if(mx!==mn){ var d=mx-mn; sa = l>.5 ? d/(2-mx-mn) : d/(mx+mn);
+      h = mx===c[0] ? (c[1]-c[2])/d+(c[1]<c[2]?6:0) : mx===c[1] ? (c[2]-c[0])/d+2 : (c[0]-c[1])/d+4;
+      h/=6; }
+    return [h,sa,l]; }
+  function toHex(h,sa,l){
+    function f(p,q,t){ t=(t+1)%1;
+      return t<1/6 ? p+(q-p)*6*t : t<1/2 ? q : t<2/3 ? p+(q-p)*(2/3-t)*6 : p; }
+    var r,g,b;
+    if(sa===0){ r=g=b=l; }
+    else { var q = l<.5 ? l*(1+sa) : l+sa-l*sa, p = 2*l-q;
+      r=f(p,q,h+1/3); g=f(p,q,h); b=f(p,q,h-1/3); }
+    function t2(x){ return ("0"+Math.round(x*255).toString(16)).slice(-2); }
+    return "#"+t2(r)+t2(g)+t2(b); }
+  function atLum(h,sa,target){                 // clarté atteignant la luminance visée
+    var lo=0, hi=1;
+    for(var k=0;k<22;k++){ var m=(lo+hi)/2;
+      if(relLum(hx(toHex(h,sa,m)))<target) lo=m; else hi=m; }
+    return toHex(h,sa,(lo+hi)/2); }
+  function lift(h,sa,l,bgs,goal){              // éclaircit juste ce qu'il faut
+    var c=toHex(h,sa,l);
+    while(l<.97 && bgs.some(function(b){ return contrast(hx(c),b)<goal; })){
+      l+=.01; c=toHex(h,sa,l); }
+    return c; }
+
+  const darkCache={};
+  function toDark(p,styleId){
+    var key=styleId+"|"+p.name;
+    if(darkCache[key]) return darkCache[key];
+    var SF=SURFACES[styleId]||SURFACES.vintage;
+    var Ls=p.s.map(function(c){ return toHsl(c)[2]; });
+    var lo=Math.min.apply(null,Ls), hi=Math.max.apply(null,Ls), span=Math.max(hi-lo,.001);
+    // Le papier garde l'ORDRE du dégradé clair (indice croissant = plus clair)
+    // et sa CHROMA, pas sa saturation. La saturation nécessaire dépendant de la
+    // clarté obtenue, on itère : premier jet neutre pour connaître la clarté
+    // visée, puis on y réinjecte la teinte.
+    var s2=p.s.map(function(c){
+      var t=toHsl(c), C=chromaOf(c),
+          Y=DARK.paper[0]+((t[2]-lo)/span)*(DARK.paper[1]-DARK.paper[0]),
+          out=atLum(t[0],0,Y);
+      for(var k=0;k<3;k++){
+        var L=toHsl(out)[2];
+        out=atLum(t[0], Math.min(DARK.paperChromaCap, C*DARK.paperChroma/Math.max(2*L,.02)), Y);
+      }
+      return out; });
+    function surf(k){ var d=SF[k], c=hx(s2[d[0]]); return d[1] ? veil(d[1],c) : c; }
+    var TXT=[surf("card"),surf("col")];
+    // accentAsText : l'accent sert de TEXTE (numeros d'etape, etoiles). Il doit
+    // contraster avec le fond de page ET avec le fond de carte — ne viser que la
+    // page laissait l'accent sous 4.5:1 sur les cartes, plus claires.
+    var ACC=SF.accentAsText ? [surf("page"),surf("card")] : [];
+    var ink=toHsl(p.ink), ac=toHsl(p.accent), wa=toHsl(p.warn);
+    var inkSat=Math.min(.55, ink[1]*1.6+.08);
+    var aSat  =Math.min(1, Math.max(ac[1],.55)*1.15);
+    var adSat =Math.min(1, Math.max(ac[1],.60)*1.25);
+    /* La couleur d'alerte était traitée comme un accent : plancher de
+       saturation à .60 puis ×1.20. Sur une palette dont le « warn » est un
+       olive sourd, cela produisait un vert citron — une couleur qui
+       n'appartenait à aucune palette et qui criait plus fort que l'accent.
+       Elle garde maintenant le registre sourd qu'elle a en clair. */
+    var wSat  =Math.min(1, Math.max(wa[1],.30)*.90);
+    var onAcc =toHex(ac[0],DARK.onAccSat,DARK.onAccL);
+    var acc   =lift(ac[0],aSat,DARK.accentL,ACC.concat([hx(onAcc)]),4.5);
+    var d={ name:p.name, dark:true, s:s2,
+      ink:      atLum(ink[0],inkSat,DARK.ink),
+      inkSoft:  lift(ink[0],inkSat*.45,toHsl(atLum(ink[0],inkSat*.45,DARK.inkSoftLum))[2],TXT,4.5),
+      accL:     acc,
+      accent:   acc,
+      accentD:  lift(ac[0],adSat,DARK.accentDL,TXT,4.5),
+      warn:     lift(wa[0],wSat,DARK.warnL,TXT,4.5),
+      onAccent: onAcc };
+    if(p.sombre) Object.assign(d, p.sombre);   // valeurs sombres choisies à la main pour cette palette
+    darkCache[key]=d;
+    return d; }
+
+  function applyPalette(p){
+    const a=hx(p.accent), ink=hx(p.ink), aL=hx(p.accL), s2=hx(p.s[1]);
+    root.toggleAttribute("data-dark", !!p.dark);
+    p.s.forEach(function(c,i){ root.style.setProperty("--sky"+(i+1),c); });
+    root.style.setProperty("--ink",p.ink);
+    root.style.setProperty("--ink-soft",p.inkSoft);
+    root.style.setProperty("--masthead",p.masthead||p.ink);
+    root.style.setProperty("--accent",p.accent);
+    root.style.setProperty("--accent-d",p.accentD);
+    root.style.setProperty("--acc-l",p.accL);
+    root.style.setProperty("--warn",p.warn);
+    root.style.setProperty("--on-accent",p.onAccent||"#fff");
+    root.style.setProperty("--line",rgba(ink,.28));
+    root.style.setProperty("--acc-glow",rgba(a,.72));
+    root.style.setProperty("--acc-line",rgba(a,.4));
+    root.style.setProperty("--acc-soft",rgba(a,.15));
+    root.style.setProperty("--ph-color",rgba(ink,.78));
+    root.style.setProperty("--ink-a16",rgba(ink,.16));
+    root.style.setProperty("--ink-a30",rgba(ink,.3));
+    root.style.setProperty("--thumb-a",rgba(aL,.30));
+    root.style.setProperty("--thumb-b",rgba(aL,.12));
+    root.style.setProperty("--pickbar",rgba(s2,.72));
+  }
+
+  /* --- état courant --- */
+  const defStyle = Math.max(0, STYLES.findIndex(s=>s.id===DEFAULT_STYLE));
+  // palette par défaut d'un style : celle nommée ci-dessus pour le style par
+  // défaut, la première pour les autres.
+  function defaultPal(k){
+    if(STYLES[k].id!==DEFAULT_STYLE) return 0;
+    return Math.max(0, STYLES[k].palettes.findIndex(p=>p.name===DEFAULT_PALETTE));
+  }
+  const MQ_DARK = window.matchMedia("(prefers-color-scheme: dark)");
+  let modeDark = DEFAULT_DARK;                       // "auto" | true | false
+  let si=defStyle, pi=defaultPal(defStyle), img="on", dark=MQ_DARK.matches;
+  function majDark(){ dark = (modeDark==="auto") ? MQ_DARK.matches : modeDark; }
+  (function restore(){
+    if(get(K_VER)!==PREF_V){ set(K_VER,PREF_V); set(K_DARK,"auto"); return; }   // 1re fois : défaut, mode auto
+    img  = (get(K_IMG)==="compact") ? "compact" : "on";
+    const kd=get(K_DARK);
+    modeDark = (kd===null || kd==="auto") ? "auto" : (kd==="1");
+    if(THEME_VERROUILLE) return;        // style + palette figés, mode et images restaurés
+    // une seule fois : l'ancien choix mémorisé (d'avant le verrouillage) ne
+    // doit pas l'emporter sur Liquid Glass au premier chargement
+    if(get("carnet_glass_v")!=="1"){ set("carnet_glass_v","1"); set(K_STYLE,DEFAULT_STYLE); }
+    const k=STYLES.findIndex(s=>s.id===get(K_STYLE));
+    if(k>=0) si=k;
+    pi=defaultPal(si);
+    const saved=get(K_PAL+STYLES[si].id);
+    if(saved!==null && STYLES[si].palettes[+saved]) pi=+saved;
+  })();
+
+  majDark();
+  function effPal(k,m){ const p=STYLES[k].palettes[m];
+    return dark ? toDark(p,STYLES[k].id) : p; }
+  function apply(){
+    const st=STYLES[si];
+    ensureFonts(st);
+    root.setAttribute("data-style",st.id);
+    root.setAttribute("data-img",img);
+    applyPalette(effPal(si,pi));
+    set("carnet_style_eff",st.id);
+    set("carnet_vars_"+(dark?"1":"0"),root.getAttribute("style")||"");
+  }
+
+  function render(){
+    if(!bar) return;
+    const st=STYLES[si];
+    const styleBtns=STYLES.map(function(s,i){
+      return '<button class="sbtn'+(i===si?' on':'')+'" data-si="'+i+'" title="Style '+s.name+'">'+s.name+'</button>';
+    }).join("");
+    const dots=st.palettes.map(function(p,i){
+      const e=effPal(si,i);   // la pastille reflète le mode clair/sombre courant
+      return '<button class="tdot'+(i===pi?' on':'')+'" title="'+p.name+'" aria-label="'+p.name+
+             '" data-pi="'+i+'" style="background:linear-gradient(135deg,'+e.s[0]+' 0 50%,'+e.accent+' 50% 100%)"></button>';
+    }).join("");
+    const imgBtns=
+      '<button class="sbtn'+(img==="on"?' on':'')+'" data-img="on" title="Afficher les photos">Vignettes</button>'+
+      '<button class="sbtn'+(img==="compact"?' on':'')+'" data-img="compact" title="Masquer toutes les images">Compact</button>';
+    const themeRows = THEME_VERROUILLE ? "" :
+      '<div class="tb-row tb-styles"><span class="tb-label">Style</span>'+styleBtns+'</div>'+
+      (st.palettes.length>1 ? '<div class="tb-row tb-pal"><span class="tb-label">Couleurs</span>'+dots+'</div>' : '');
+    bar.innerHTML= themeRows+
+      '<div class="tb-row tb-three"><span class="tb-label">Mode</span>'+
+        '<button class="sbtn'+(modeDark==="auto"?' on':'')+'" data-dark="auto" title="Suit le réglage clair/sombre de l\'appareil">Auto</button>'+
+        '<button class="sbtn'+(modeDark===false?' on':'')+'" data-dark="0" title="Toujours clair">Clair</button>'+
+        '<button class="sbtn'+(modeDark===true?' on':'')+'" data-dark="1" title="Toujours sombre">Sombre</button>'+
+      '</div>'+
+      '<div class="tb-row tb-two"><span class="tb-label">Images</span>'+imgBtns+'</div>';
+
+    bar.querySelectorAll("[data-si]").forEach(function(b){ b.onclick=function(){
+      si=+b.dataset.si; set(K_STYLE,STYLES[si].id);
+      const saved=get(K_PAL+STYLES[si].id);
+      pi=(saved!==null && STYLES[si].palettes[+saved]) ? +saved : defaultPal(si);
+      apply(); render();
+    };});
+    bar.querySelectorAll("[data-pi]").forEach(function(b){ b.onclick=function(){
+      pi=+b.dataset.pi; set(K_PAL+STYLES[si].id,pi); apply(); render();
+    };});
+    bar.querySelectorAll("[data-dark]").forEach(function(b){ b.onclick=function(){
+      const v=b.dataset.dark; modeDark = (v==="auto") ? "auto" : (v==="1");
+      set(K_DARK, v); majDark(); apply(); render();
+    };});
+    bar.querySelectorAll("[data-img]").forEach(function(b){ b.onclick=function(){
+      img=b.dataset.img; set(K_IMG,img); apply(); render();
+    };});
+  }
+
+  /* --- ouverture / fermeture du panneau --- */
+  const btn=document.getElementById("apprBtn");
+  function setOpen(o){
+    if(!bar||!btn) return;
+    bar.hidden=!o;
+    btn.setAttribute("aria-expanded", String(o));
+  }
+  if(btn){
+    btn.onclick=function(e){ e.stopPropagation(); setOpen(bar.hidden); };
+    document.addEventListener("click", function(e){
+      if(bar.hidden) return;
+      if(!bar.contains(e.target) && e.target!==btn) setOpen(false);
+    }, true);   // capture : voir le commentaire ci-dessus
+    document.addEventListener("keydown", function(e){
+      if(e.key==="Escape" && !bar.hidden){ setOpen(false); btn.focus(); }
+    });
+  }
+
+  apply();
+  render();
+  setOpen(false);
+  // en mode auto, la page bascule en direct quand le système change de mode
+  const surChangement=function(){ if(modeDark!=="auto") return; majDark(); apply(); render(); };
+  if(MQ_DARK.addEventListener) MQ_DARK.addEventListener("change", surChangement);
+  else if(MQ_DARK.addListener) MQ_DARK.addListener(surChangement);
+})();
+renderAll();
+</script>
+<script>
+/*!
+ * liquid-glass.js — réfraction « Liquid Glass » façon Apple pour le web.
+ * Version adaptée pour le skill liquid-glass-web.
+ *
+ * Basé sur liquid-glass.js de Deepika Rao (https://github.com/deepika-builds/liquid-glass)
+ * Copyright (c) 2026 Deepika Rao — Licence MIT :
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Modifications (skill liquid-glass-web) :
+ *  - le repli dépoli est laissé à la feuille lg.css (le module n'écrit plus de
+ *    style inline hors Chromium, pour que les media queries d'accessibilité
+ *    gardent la main) ;
+ *  - aucune réfraction si l'utilisateur demande moins de transparence ou plus
+ *    de contraste, ou si l'élément dépasse 800 px de côté (coût GPU) ;
+ *  - initialisation automatique de tout élément portant [data-liquid-glass],
+ *    options lues dans data-lg-scale, data-lg-chroma, data-lg-blur… ;
+ *  - classe .lg-refract posée sur les éléments réellement réfractés ;
+ *  - flou intérieur par défaut porté de 3 à 10 px : à 3 px, le texte d'une barre
+ *    devient illisible quand du contenu passe dessous.
+ *
+ * Usage : <div class="lg-glass" data-liquid-glass data-lg-scale="-90">…</div>
+ *         ou liquidGlass(el, { scale: -90 }) en JS.
+ */
+(function (global) {
+  "use strict";
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  let uid = 0;
+  let svgDefs = null;
+
+  // Chromium can apply SVG filters via backdrop-filter; Safari and Firefox
+  // silently no-op, so they get the frosted fallback instead.
+  const supported = (() => {
+    const ua = navigator.userAgent;
+    const isSafari = /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua);
+    const isFirefox = /Firefox/.test(ua);
+    if (isSafari || isFirefox) return false;
+    if (!CSS.supports("backdrop-filter", "url(#lg)")) return false;
+    try {
+      const c = document.createElement("canvas");
+      c.width = c.height = 4;
+      c.getContext("2d").getImageData(0, 0, 1, 1);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  })();
+
+  function ensureDefs() {
+    if (svgDefs) return svgDefs;
+    const svg = document.createElementNS(SVG_NS, "svg");
+    // width/height 0 keeps it renderable (display:none would break feImage)
+    svg.setAttribute("width", "0");
+    svg.setAttribute("height", "0");
+    svg.setAttribute("aria-hidden", "true");
+    svg.style.position = "absolute";
+    svgDefs = document.createElementNS(SVG_NS, "defs");
+    svg.appendChild(svgDefs);
+    document.body.appendChild(svg);
+    return svgDefs;
+  }
+
+  // Displacement map, gradient-difference method: a red left->right ramp
+  // encodes X displacement, a blue top->bottom ramp encodes Y ("difference"
+  // keeps both since the channels are disjoint). A blurred, inset 50%-gray
+  // rounded rect neutralizes the interior, confining the refraction bulge to
+  // an edge band whose curvature is set by the blur radius.
+  function makeMap(w, h, radius, border, mapBlur) {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+
+    const gx = ctx.createLinearGradient(0, 0, w, 0);
+    gx.addColorStop(0, "rgb(0,0,0)");
+    gx.addColorStop(1, "rgb(255,0,0)");
+    ctx.fillStyle = gx;
+    ctx.fillRect(0, 0, w, h);
+
+    const gy = ctx.createLinearGradient(0, 0, 0, h);
+    gy.addColorStop(0, "rgb(0,0,0)");
+    gy.addColorStop(1, "rgb(0,0,255)");
+    ctx.globalCompositeOperation = "difference";
+    ctx.fillStyle = gy;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.globalCompositeOperation = "source-over";
+    const inset = border * Math.min(w, h);
+    ctx.filter = "blur(" + mapBlur + "px)";
+    ctx.fillStyle = "rgba(128,128,128,0.93)";
+    ctx.beginPath();
+    ctx.roundRect(inset, inset, w - inset * 2, h - inset * 2,
+                  Math.max(radius - inset, 2));
+    ctx.fill();
+    ctx.filter = "none";
+    return canvas.toDataURL();
+  }
+
+  // Three displacement passes at staggered scales (R strongest), channels
+  // isolated with feColorMatrix and recombined with screen blends — the
+  // faint prism fringe at the rim.
+  function buildFilter(id, scales) {
+    const filter = document.createElementNS(SVG_NS, "filter");
+    filter.setAttribute("id", id);
+    filter.setAttribute("x", "0");
+    filter.setAttribute("y", "0");
+    filter.setAttribute("width", "100%");
+    filter.setAttribute("height", "100%");
+    // Load-bearing: filters default to linearRGB, which re-maps the map's
+    // neutral gray 128 to ~0.216 and injects a constant phantom displacement.
+    filter.setAttribute("color-interpolation-filters", "sRGB");
+
+    const feImage = document.createElementNS(SVG_NS, "feImage");
+    feImage.setAttribute("x", "0");
+    feImage.setAttribute("y", "0");
+    feImage.setAttribute("result", "map");
+    feImage.setAttribute("preserveAspectRatio", "none");
+    filter.appendChild(feImage);
+
+    const keep = [
+      "1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0",
+      "0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0",
+      "0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0",
+    ];
+    const channels = [];
+    for (let i = 0; i < 3; i++) {
+      const disp = document.createElementNS(SVG_NS, "feDisplacementMap");
+      disp.setAttribute("in", "SourceGraphic");
+      disp.setAttribute("in2", "map");
+      disp.setAttribute("scale", scales[i]);
+      disp.setAttribute("xChannelSelector", "R");
+      disp.setAttribute("yChannelSelector", "B");
+      disp.setAttribute("result", "d" + i);
+      filter.appendChild(disp);
+
+      const cm = document.createElementNS(SVG_NS, "feColorMatrix");
+      cm.setAttribute("in", "d" + i);
+      cm.setAttribute("type", "matrix");
+      cm.setAttribute("values", keep[i]);
+      cm.setAttribute("result", "c" + i);
+      filter.appendChild(cm);
+      channels.push("c" + i);
+    }
+
+    const blend1 = document.createElementNS(SVG_NS, "feBlend");
+    blend1.setAttribute("in", channels[0]);
+    blend1.setAttribute("in2", channels[1]);
+    blend1.setAttribute("mode", "screen");
+    blend1.setAttribute("result", "c01");
+    filter.appendChild(blend1);
+
+    const blend2 = document.createElementNS(SVG_NS, "feBlend");
+    blend2.setAttribute("in", "c01");
+    blend2.setAttribute("in2", channels[2]);
+    blend2.setAttribute("mode", "screen");
+    filter.appendChild(blend2);
+
+    ensureDefs().appendChild(filter);
+    return { filter, feImage };
+  }
+
+  function resolveRadius(el, w, h, override) {
+    if (override != null) return override;
+    const raw = getComputedStyle(el).borderTopLeftRadius || "0px";
+    const v = parseFloat(raw) || 0;
+    return raw.trim().endsWith("%") ? (v / 100) * Math.min(w, h) : v;
+  }
+
+  /**
+   * Apply liquid glass to an element.
+   *
+   * @param {Element} el
+   * @param {Object} [opts]
+   * @param {number} [opts.scale=-112]     Displacement strength (negative = magnifying bulge).
+   * @param {number} [opts.chroma=6]       Per-channel scale stagger; 0 disables the prism fringe.
+   * @param {number} [opts.border=0.07]    Neutral inset as a fraction of the smaller side.
+   * @param {number} [opts.mapBlur=12]     Edge-curvature softness (px) of the map's gray inset.
+   * @param {number} [opts.blur=10]         Backdrop blur (px) behind the glass interior.
+   * @param {number} [opts.saturate=1.5]   Backdrop saturation boost.
+   * @param {number} [opts.radius]         Corner radius override (px); default reads border-radius.
+     * @returns {{supported: boolean, refresh: Function, destroy: Function}}
+   */
+  function liquidGlass(el, opts) {
+    const o = Object.assign(
+      { scale: -112, chroma: 6, border: 0.07, mapBlur: 12,
+        blur: 10, saturate: 1.6, radius: null },
+      opts
+    );
+
+    const reduce = matchMedia("(prefers-reduced-transparency: reduce), (prefers-contrast: more)").matches;
+    const tooBig = el.offsetWidth > 800 || el.offsetHeight > 800;
+    if (!supported || reduce || tooBig) {
+      // Repli : rien d'inline — le verre dépoli de lg.css s'applique tel quel.
+      el.classList.add("lg-fallback");
+      return { supported: false, refresh: function () {}, destroy: function () {
+        el.classList.remove("lg-fallback");
+      } };
+    }
+
+    const id = "lg-filter-" + (++uid);
+    const scales = [o.scale, o.scale + o.chroma, o.scale + 2 * o.chroma];
+    const parts = buildFilter(id, scales);
+
+    function refresh() {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      if (!w || !h) return;
+      const radius = resolveRadius(el, w, h, o.radius);
+      parts.feImage.setAttribute("href", makeMap(w, h, radius, o.border, o.mapBlur));
+      parts.feImage.setAttribute("width", w);
+      parts.feImage.setAttribute("height", h);
+    }
+
+    refresh();
+    el.style.backdropFilter =
+      "url(#" + id + ") blur(" + o.blur + "px) saturate(" + o.saturate + ")";
+    el.classList.add("lg-refract");
+
+    let timer = null;
+    const ro = new ResizeObserver(function () {
+      clearTimeout(timer);
+      timer = setTimeout(refresh, 120);
+    });
+    ro.observe(el);
+
+    return {
+      supported: true,
+      refresh: refresh,
+      destroy: function () {
+        ro.disconnect();
+        clearTimeout(timer);
+        parts.filter.remove();
+        el.style.backdropFilter = "";
+        el.classList.remove("lg-refract");
+      },
+    };
+  }
+
+  global.liquidGlass = liquidGlass;
+  global.liquidGlass.supported = supported;
+
+  // Initialisation automatique : [data-liquid-glass] + options en data-lg-*.
+  function autoInit() {
+    document.querySelectorAll("[data-liquid-glass]").forEach(function (el) {
+      if (el.__lg) return;
+      const d = el.dataset, opts = {};
+      ["scale", "chroma", "border", "mapBlur", "blur", "saturate", "radius"].forEach(function (k) {
+        const v = d["lg" + k.charAt(0).toUpperCase() + k.slice(1)];
+        if (v != null && v !== "") opts[k] = Number(v);
+      });
+      el.__lg = liquidGlass(el, opts);
+    });
+  }
+  global.liquidGlass.init = autoInit;
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", autoInit);
+  } else {
+    autoInit();
+  }
+})(window);
+
+</script>
+<script>
+/* =====================================================================
+   LIQUID GLASS — réfraction des bords du bouton « Retour » de la fiche.
+   Chromium / Brave seulement ; ailleurs (Firefox, Safari, iPhone) le verre
+   dépoli du CSS suffit et la page est identique sans l'effet.
+   N'agit que si le style en vigueur est "glass". Le bouton étant recréé à
+   chaque ouverture de fiche, l'ancien filtre SVG est détruit à chaque fois
+   (sinon les filtres s'accumuleraient dans la page).
+   ===================================================================== */
+(function(){
+  if(!window.liquidGlass) return;
+  var root=document.documentElement, dv=document.getElementById("detailView"), courant=null;
+  if(!dv) return;
+  function poser(){
+    if(courant && !courant.isConnected){ if(courant.__lg) courant.__lg.destroy(); courant=null; }
+    if(root.getAttribute("data-style")!=="glass") return;
+    var b=dv.querySelector(":scope > .back");
+    if(!b || b===courant || !b.offsetWidth) return;
+    b.__lg=window.liquidGlass(b,{scale:-90,chroma:4});
+    courant=b;
+  }
+  new MutationObserver(poser).observe(dv,{childList:true});
+  poser();
+})();
+</script>
+</body>
+</html>
