@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-style="glass" data-img="on" data-dark>
+<html lang="fr" data-style="marche" data-img="on" data-dark>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,8 +40,12 @@
      Celui qu'on voit à la première ouverture dans un navigateur. Ensuite,
      c'est le choix fait dans « Apparence » qui compte (tous les styles y
      sont de nouveau accessibles depuis le 3 octobre 2026).
+     29 octobre 2026 : Marché remplace Liquid Glass comme style par défaut.
      ==================================================================== */
-  var STYLE_DEFAUT = "glass";
+  var STYLE_DEFAUT = "marche";
+  /* Polices du style par défaut, pour une toute première visite (rien en
+     mémoire) : même adresse que fontsUrl() pour ce style dans le script de fin. */
+  var POLICES_DEFAUT = "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Schibsted+Grotesk:ital,wght@0,400..700;1,400..700&display=swap";
   document.documentElement.setAttribute("data-style", STYLE_DEFAUT);
   (function(){
     try{
@@ -65,7 +69,8 @@
       /* polices du dernier style vu, demandées dès maintenant : chargées en
          fin de page, le premier rendu se faisait dans la police de repli */
       var fu = localStorage.getItem("carnet_fonts_eff");
-      if(st && fu && fu.indexOf("https://fonts.googleapis.com/css2?")===0){
+      if(!st) fu = POLICES_DEFAUT;
+      if(fu && fu.indexOf("https://fonts.googleapis.com/css2?")===0){
         var l = document.createElement("link"); l.rel = "stylesheet"; l.href = fu;
         document.head.appendChild(l);
       }
@@ -3481,8 +3486,10 @@ window.addEventListener("load", function(){ chargerNotes(); });
   const loadedFonts=new Set((STYLES.find(s=>s.id==="vintage")||{fonts:[]}).fonts);   // déjà dans le <head>
   /* les polices du dernier style vu ont été demandées par le script de tête
      (carnet_fonts_eff) : inutile de les redemander */
-  (function(){ const pre=(STYLES.find(s=>s.id===get("carnet_style_eff"))||{fonts:[]});
-    if(get("carnet_fonts_eff")) pre.fonts.forEach(f=>loadedFonts.add(f)); })();
+  (function(){ const eff=get("carnet_style_eff");
+    // première visite : le script de tête a demandé les polices du style par défaut
+    const pre=(STYLES.find(s=>s.id===(eff||window.STYLE_DEFAUT))||{fonts:[]});
+    if(!eff || get("carnet_fonts_eff")) pre.fonts.forEach(f=>loadedFonts.add(f)); })();
   function fontsUrl(list){
     return "https://fonts.googleapis.com/css2?"+list.map(f=>"family="+f).join("&")+"&display=swap"; }
   function ensureFonts(st){
@@ -3676,7 +3683,8 @@ window.addEventListener("load", function(){ chargerNotes(); });
   let si=defStyle, pi=defaultPal(defStyle), img="on", dark=MQ_DARK.matches;
   function majDark(){ dark = (modeDark==="auto") ? MQ_DARK.matches : modeDark; }
   (function restore(){
-    if(get(K_VER)!==PREF_V){ set(K_VER,PREF_V); set(K_DARK,"auto"); return; }   // 1re fois : défaut, mode auto
+    if(get(K_VER)!==PREF_V){ set(K_VER,PREF_V); set(K_DARK,"auto");   // 1re fois : défaut, mode auto
+      set("carnet_glass_v","1"); set("carnet_marche_v","1"); return; }  // bascules uniques déjà « faites »
     img  = (get(K_IMG)==="compact") ? "compact" : "on";
     const kd=get(K_DARK);
     modeDark = (kd===null || kd==="auto") ? "auto" : (kd==="1");
@@ -3684,6 +3692,9 @@ window.addEventListener("load", function(){ chargerNotes(); });
     // une seule fois : l'ancien choix mémorisé (d'avant le verrouillage) ne
     // doit pas l'emporter sur Liquid Glass au premier chargement
     if(get("carnet_glass_v")!=="1"){ set("carnet_glass_v","1"); set(K_STYLE,DEFAULT_STYLE); }
+    // 29 octobre 2026 : idem pour le passage à Marché par défaut. Une seule
+    // fois par navigateur ; un style choisi ensuite dans Apparence est gardé.
+    if(get("carnet_marche_v")!=="1"){ set("carnet_marche_v","1"); set(K_STYLE,DEFAULT_STYLE); }
     const k=STYLES.findIndex(s=>s.id===get(K_STYLE));
     if(k>=0) si=k;
     pi=defaultPal(si);

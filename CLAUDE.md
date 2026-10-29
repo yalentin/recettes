@@ -66,8 +66,11 @@ design du 20 septembre 2026, audit mobile du 3 octobre 2026). Ces textes décriv
 encore l'ancien fonctionnement local pour les notes et les images ; seules les
 décisions de design résumées ci-dessous font foi.
 
-- **Apparence** : quatre styles (Liquid Glass par défaut, Vintage, Éditorial,
-  Marché ; `STYLE_DEFAUT` en tête de `index.html`). Aqua, Suisse, Brutal et Mono
+- **Apparence** : quatre styles (Marché par défaut depuis le 29 octobre 2026,
+  Liquid Glass, Vintage, Éditorial ; `STYLE_DEFAUT` en tête de `index.html`,
+  avec `POLICES_DEFAUT` pour la première visite). Le passage à Marché a été
+  imposé une fois à chaque navigateur (`carnet_marche_v`) ; un style choisi
+  ensuite dans Apparence est gardé. Aqua, Suisse, Brutal et Mono
   ont été supprimés le 3 octobre 2026. Marché (29 octobre 2026) est le style
   dessiné par Claude sans consigne de style : Fraunces + Schibsted Grotesk,
   cartes blanches à filets fins, photo sertie, étapes en frise ; quatre
