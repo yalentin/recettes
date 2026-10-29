@@ -54,6 +54,10 @@
       /* Style et couleurs du dernier passage, mémorisés par le menu Apparence
          (un jeu de couleurs par mode) : n'importe quel style s'affiche juste
          dès le premier pixel, pas seulement celui écrit en dur dans le CSS. */
+      /* Colonne latérale repliée au dernier passage : posé avant le premier
+         rendu pour qu'elle ne s'affiche pas une fraction de seconde. */
+      if(localStorage.getItem("carnet_side_ferme") === "1")
+        document.documentElement.setAttribute("data-side", "ferme");
       var st = localStorage.getItem("carnet_style_eff");
       if(st) document.documentElement.setAttribute("data-style", st);
       var vars = localStorage.getItem("carnet_vars_" + (sombre ? "1" : "0"));
@@ -194,6 +198,28 @@
   .resize-handle:hover::before,.resize-handle.drag::before{opacity:1;}
   .resize-handle:hover::before,.resize-handle.drag::before{background:var(--accent);height:74px;width:4px;}
 
+  /* ---- replier la colonne latérale (écran large seulement) ----
+     Bouton discret en haut à droite de la colonne ; une fois repliée, un
+     bouton du même dessin reste fixé en haut à gauche pour la rouvrir.
+     Jamais en accent : c'est un réglage d'affichage, pas une action. */
+  .side-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;
+    border:var(--bd-w) solid var(--bd);border-radius:var(--radius);background:var(--surface-ctl);
+    color:var(--ink-soft);cursor:pointer;box-shadow:var(--sh-in);transition:color .15s,background .15s;}
+  .side-btn:hover{color:var(--ink);background:var(--surface-hi);}
+  .side-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .side-btn svg{width:18px;height:18px;display:block;}
+  .side-fermer{position:absolute;top:18px;right:14px;z-index:3;}
+  .side-ouvrir{position:fixed;top:18px;left:18px;z-index:31;display:none;}
+  .side.va-fermer{opacity:.45;transition:opacity .12s;}
+  @media(min-width:781px){
+    html[data-side="ferme"] .wrap{grid-template-columns:1fr;}
+    html[data-side="ferme"] .side,
+    html[data-side="ferme"] .resize-handle{display:none;}
+    html[data-side="ferme"] .side-ouvrir{display:flex;}
+    /* place pour le bouton de réouverture, symétrique pour garder le centrage */
+    html[data-side="ferme"] .wrap > .main{padding-left:72px;padding-right:72px;}
+  }
+
   .side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 20px 76px;
     background:var(--surface-side);border-right:var(--bd-w) solid var(--bd);
     backdrop-filter:var(--blur-side);-webkit-backdrop-filter:var(--blur-side);
@@ -303,7 +329,9 @@
   .group-h:first-child{margin-top:2px;}
   .group-n{font-size:11px;font-weight:700;opacity:.55;}
 
-  .detail{display:none;max-width:1040px;}
+  /* Centrées dans la zone principale : calées à gauche, elles laissaient un
+     vide à droite dès que la colonne était étroite ou repliée. */
+  .detail{display:none;max-width:1040px;margin-inline:auto;}
   .back{display:inline-flex;align-items:center;gap:6px;background:var(--surface-ctl);border:var(--bd-w) solid var(--bd);
     cursor:pointer;color:var(--accent-d);font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:var(--ctl-radius);margin-bottom:18px;
     font-family:var(--font-ui);letter-spacing:.03em;text-transform:uppercase;
@@ -384,7 +412,7 @@
   .plan-btn.ghost::before{opacity:calc(var(--gloss) * .5);}
   .plan-btn.ghost:hover{background:var(--surface-hi);}
 
-  .planner{display:none;max-width:1040px;}
+  .planner{display:none;max-width:1040px;margin-inline:auto;}
   .pl-title{font-family:var(--font-display);font-weight:var(--fw-title);letter-spacing:var(--ls-title);
     font-size:32px;line-height:1.02;margin:4px 0 6px;color:var(--ink);text-shadow:var(--title-sh);}
   .pl-lead{color:var(--ink-soft);font-size:15.5px;margin:0 0 22px;max-width:640px;}
@@ -479,6 +507,7 @@
   @media(max-width:780px){
     .wrap{grid-template-columns:1fr;}
     .resize-handle{display:none;}
+    .side-btn{display:none !important;}
     .side{position:static;height:auto;border-right:none;border-bottom:var(--bd-w) solid var(--bd);}
     .filter-toggle{display:block;}
     #facets.collapsed{display:none;}
@@ -1745,7 +1774,8 @@
 </head>
 <body>
 <div class="wrap">
-  <aside class="side">
+  <aside class="side" id="side">
+    <button id="sideFermer" class="side-btn side-fermer" type="button" aria-controls="side" aria-expanded="true" aria-label="Masquer la colonne latérale" title="Masquer la colonne latérale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/><path d="M7.5 3.5v13"/></svg></button>
     <h1 class="masthead">Recettes<small>Carnet de cuisine</small></h1>
     <div class="rule"></div>
     <div class="search-wrap">
@@ -1760,6 +1790,7 @@
     <button id="apprBtn" class="appr-btn" type="button" aria-expanded="false" aria-controls="themebar">Apparence</button>
     <div id="themebar" class="themebar" role="dialog" aria-label="Apparence" hidden></div>
   </aside>
+  <button id="sideOuvrir" class="side-btn side-ouvrir" type="button" aria-controls="side" aria-expanded="false" aria-label="Afficher la colonne latérale" title="Afficher la colonne latérale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/><path d="M7.5 3.5v13"/></svg></button>
   <div class="resize-handle" id="resizeHandle" title="Redimensionner la barre latérale" role="separator" aria-orientation="vertical"></div>
   <main class="main">
     <section id="listView">
@@ -2829,14 +2860,36 @@ $("#clearBtn").onclick=()=>{selected.clear();search="";$("#search").value="";if(
   if(!wrap||!handle) return;
   try{ var saved=localStorage.getItem("carnet_sideW");
     if(saved && /^[0-9]+px$/.test(saved)) wrap.style.setProperty("--side-w",Math.max(SIDE_MIN,parseInt(saved,10))+"px"); }catch(e){}
-  var dragging=false;
-  handle.addEventListener("pointerdown",function(e){ dragging=true; handle.classList.add("drag");
+  /* Replier / déplier. Glisser la poignée bien en dessous du minimum
+     replie aussi la colonne (elle pâlit pour l'annoncer avant le lâcher). */
+  var side=$("#side"), bFermer=$("#sideFermer"), bOuvrir=$("#sideOuvrir");
+  var SEUIL_FERMER=140;
+  function replier(ferme, focus){
+    document.documentElement.toggleAttribute("data-side", false);
+    if(ferme) document.documentElement.setAttribute("data-side","ferme");
+    try{ localStorage.setItem("carnet_side_ferme", ferme?"1":"0"); }catch(_){}
+    if(bFermer) bFermer.setAttribute("aria-expanded", String(!ferme));
+    if(bOuvrir) bOuvrir.setAttribute("aria-expanded", String(!ferme));
+    if(focus){ var cible = ferme ? bOuvrir : bFermer; if(cible) cible.focus(); }
+    // les titres des cartes sont calibrés sur la largeur : on les recalcule
+    window.dispatchEvent(new Event("resize"));
+  }
+  var dejaFerme = document.documentElement.getAttribute("data-side")==="ferme";
+  if(bFermer) bFermer.setAttribute("aria-expanded", String(!dejaFerme));
+  if(bOuvrir) bOuvrir.setAttribute("aria-expanded", String(!dejaFerme));
+  if(bFermer) bFermer.onclick=function(){ replier(true, true); };
+  if(bOuvrir) bOuvrir.onclick=function(){ replier(false, true); };
+  var dragging=false, dernierX=null;
+  handle.addEventListener("pointerdown",function(e){ dragging=true; dernierX=null; handle.classList.add("drag");
     try{handle.setPointerCapture(e.pointerId);}catch(_){}
     document.body.style.userSelect="none"; document.body.style.cursor="col-resize"; e.preventDefault(); });
   handle.addEventListener("pointermove",function(e){ if(!dragging) return;
-    var w=Math.max(SIDE_MIN,Math.min(460,e.clientX)); wrap.style.setProperty("--side-w",w+"px"); });
+    var w=Math.max(SIDE_MIN,Math.min(460,e.clientX)); wrap.style.setProperty("--side-w",w+"px");
+    dernierX=e.clientX; if(side) side.classList.toggle("va-fermer", e.clientX<SEUIL_FERMER); });
   function end(){ if(!dragging) return; dragging=false; handle.classList.remove("drag");
     document.body.style.userSelect=""; document.body.style.cursor="";
+    if(side) side.classList.remove("va-fermer");
+    if(dernierX!==null && dernierX<SEUIL_FERMER) replier(true, false);
     try{ localStorage.setItem("carnet_sideW", getComputedStyle(wrap).getPropertyValue("--side-w").trim()); }catch(_){} }
   handle.addEventListener("pointerup",end);
   handle.addEventListener("pointercancel",end);
