@@ -119,7 +119,8 @@ décisions de design résumées ci-dessous font foi.
   repliés par défaut ; en-tête compact sur trois rangées (titre + « Mes
   notes » / « Apparence » en simples liens ; recherche + « Filtres » ;
   « Planifier mes courses »), sans sous-titre ni filet — Val trouvait que le
-  haut prenait trop de place ; fiche organisée pour cuisiner (titre, photo, temps,
+  haut prenait trop de place ; compte des recettes et tri (« Ordre du carnet
+  / Mieux notées ») sur une même ligne dès 375 px, « Tout effacer » en dessous ; fiche organisée pour cuisiner (titre, photo, temps,
   ingrédients, étapes ; note et image après).
   Les −/+ des personnes font 44 px sur écran tactile ou étroit (règle en fin
   de feuille). En Glass, le « Retour » de la fiche vit dans une barre collante
