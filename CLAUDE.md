@@ -66,9 +66,13 @@ design du 20 septembre 2026, audit mobile du 3 octobre 2026). Ces textes décriv
 encore l'ancien fonctionnement local pour les notes et les images ; seules les
 décisions de design résumées ci-dessous font foi.
 
-- **Apparence** : trois styles (Liquid Glass par défaut, Vintage, Éditorial ;
-  `STYLE_DEFAUT` en tête de `index.html`). Aqua, Suisse, Brutal et Mono ont été
-  supprimés le 3 octobre 2026. Mode Auto / Clair / Sombre, Auto par défaut.
+- **Apparence** : quatre styles (Liquid Glass par défaut, Vintage, Éditorial,
+  Marché ; `STYLE_DEFAUT` en tête de `index.html`). Aqua, Suisse, Brutal et Mono
+  ont été supprimés le 3 octobre 2026. Marché (29 octobre 2026) est le style
+  dessiné par Claude sans consigne de style : Fraunces + Schibsted Grotesk,
+  cartes blanches à filets fins, photo sertie, étapes en frise ; quatre
+  palettes (Tomate par défaut, Cerise, Basilic, Prune). Les polices du dernier
+  style vu sont demandées dès le script de tête (`carnet_fonts_eff`). Mode Auto / Clair / Sombre, Auto par défaut.
   Accent rouge cerise `#ae292d` en clair ; en sombre, remplissage `#d1343b` et
   texte d'accent `#ff6b70` (valeurs choisies à la main dans la palette, appliquées
   à la fin de `toDark`).

@@ -58,6 +58,13 @@
       if(st) document.documentElement.setAttribute("data-style", st);
       var vars = localStorage.getItem("carnet_vars_" + (sombre ? "1" : "0"));
       if(st && vars) document.documentElement.setAttribute("style", vars);
+      /* polices du dernier style vu, demandées dès maintenant : chargées en
+         fin de page, le premier rendu se faisait dans la police de repli */
+      var fu = localStorage.getItem("carnet_fonts_eff");
+      if(st && fu && fu.indexOf("https://fonts.googleapis.com/css2?")===0){
+        var l = document.createElement("link"); l.rel = "stylesheet"; l.href = fu;
+        document.head.appendChild(l);
+      }
       if(localStorage.getItem("carnet_img") === "compact")
         document.documentElement.setAttribute("data-img","compact");
     }catch(e){}
@@ -70,7 +77,7 @@
      Deux niveaux de personnalisation, tous deux pilotés depuis le menu
      "Apparence" en bas de l'écran :
 
-       1. LE STYLE   -> attribut  <html data-style="glass|vintage|editorial">
+       1. LE STYLE   -> attribut  <html data-style="glass|vintage|editorial|marche">
                         redéfinit la structure visuelle : polices, rayons,
                         bordures, ombres, reflets, remplissages.
        2. LA PALETTE -> variables de couleur posées en JS sur :root
@@ -1501,6 +1508,239 @@
   html[data-style][data-dark] .modebtn.et:hover{background:transparent;color:var(--ink);
     border:var(--bd-w) solid var(--ink-a30);box-shadow:none;text-shadow:none;}
   html[data-style="glass"] .modebtn.et{border:1px solid var(--ink-a30);}
+
+  /* =====================================================================
+     STYLE 8 — MARCHÉ  (29 octobre 2026)
+     ---------------------------------------------------------------------
+     Le style dessiné sans consigne : un carnet de cuisine d'aujourd'hui,
+     ni rétro ni appli système. Principes :
+       · Deux polices qui ont chacune un rôle. Fraunces (serif à tailles
+         optiques, un peu « molle ») pour tout ce qui se LIT comme un titre :
+         en-tête, titres de recettes, intertitres en italique. Schibsted
+         Grotesk pour tout ce qui se CONSULTE en cuisinant : ingrédients,
+         quantités (chiffres tabulaires), étapes, commandes.
+       · Papier blanc cassé, cartes blanches, filets d'un cheveu tirés de
+         l'encre (color-mix), aucune ombre au repos : la profondeur
+         n'apparaît qu'au survol, là où elle signifie « cliquable ».
+       · La photo est sertie dans la carte (marge de 8 px, coins arrondis),
+         comme un tirage posé sur une fiche.
+       · Les intertitres (groupes, Ingrédients, Préparation) sont des
+         italiques de Fraunces, pas des capitales espacées : la page parle
+         au lieu d'étiqueter.
+       · Les étapes forment une frise : numéro cerclé à l'accent, relié au
+         suivant par un filet vertical — on retrouve où on en est d'un coup
+         d'œil, les mains occupées.
+     L'accent reste réservé à l'action principale, aux filtres actifs, aux
+     numéros d'étape et aux étoiles (décisions du carnet).
+     ===================================================================== */
+  html[data-style="marche"]{
+    /* ---- palette du premier rendu (Tomate ; le script repose la même) ---- */
+    --sky1:#e7e2d8; --sky2:#eeeae2; --sky3:#f3efe7; --sky4:#f9f7f2; --sky5:#ffffff;
+    --ink:#1d1b17; --ink-soft:#6b665c; --masthead:#1d1b17;
+    --accent:#b8321a; --accent-d:#932714; --acc-l:#b8321a;
+    --warn:#8a5d0a; --on-accent:#ffffff;
+    --line:rgba(29,27,23,.28);
+    --acc-glow:rgba(184,50,26,.72); --acc-line:rgba(184,50,26,.4); --acc-soft:rgba(184,50,26,.15);
+    --ph-color:rgba(29,27,23,.78); --ink-a16:rgba(29,27,23,.16); --ink-a30:rgba(29,27,23,.3);
+
+    /* ---- jetons propres au style ---- */
+    --mk-hair:color-mix(in srgb,var(--ink) 12%,transparent);     /* filet d'un cheveu */
+    --mk-hair-2:color-mix(in srgb,var(--ink) 20%,transparent);   /* filet appuyé (survol, focus) */
+    --mk-wash:color-mix(in srgb,var(--ink) 5%,var(--sky5));      /* lavis : survol, encarts */
+    --mk-shadow:0 22px 36px -24px color-mix(in srgb,var(--ink) 60%,transparent),
+                0 2px 6px -3px color-mix(in srgb,var(--ink) 16%,transparent);
+
+    --font-ui:"Schibsted Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+    --font-body:"Fraunces",Georgia,serif;
+    --font-text:var(--font-ui);
+    --font-note:"Fraunces",Georgia,serif;
+    --fs-body:16.5px; --lh-body:1.55;
+    --ls-label:.08em; --tt-label:uppercase; --fw-label:600;
+    --ls-title:-.015em; --fw-title:600; --lh-title:1.14;
+
+    --page-bg:var(--sky3); --page-attach:scroll;
+
+    --radius:10px; --card-radius:14px; --ctl-radius:10px; --pill:999px; --round:50%;
+
+    --bd-w:1px; --bd:var(--mk-hair);
+    --bd-focus:var(--ink); --bd-on:transparent;
+    --surface-side:var(--sky2);
+    --surface-card:var(--sky5);
+    --surface-ctl:var(--sky5);
+    --surface-panel:var(--sky5);
+    --surface-hi:var(--mk-wash); --surface-hi-soft:var(--mk-wash);
+    --blur-side:none; --blur-card:none; --blur-bar:none; --blur-rec:none;
+
+    --sh-in:none; --sh-in-soft:none; --sh-field:none;
+    --sh-field-focus:0 0 0 3px color-mix(in srgb,var(--ink) 12%,transparent);
+    --sh-card:none; --sh-card-hov:var(--mk-shadow);
+    --sh-card-sm:none; --sh-card-sm-hov:var(--mk-shadow);
+    --sh-hero:none; --sh-bar:0 14px 30px -20px color-mix(in srgb,var(--ink) 50%,transparent);
+    --sh-pill:none; --sh-pill-on:none;
+    --sh-acc:none; --sh-acc-hov:none; --sh-acc-press:none; --sh-num:none;
+    --sh-picked:var(--mk-shadow);
+
+    --accent-fill:var(--accent); --accent-fill-2:var(--accent); --on-accent-sh:none;
+
+    --gloss:0; --title-sh:none; --label-sh:none;
+    --lift:0px;
+    --card-lift:translateY(-3px); --card-lift-press:translateY(-1px);
+    --card-lift-sm:translateY(-2px); --press:scale(.97);
+    --ease-pop:cubic-bezier(.2,.8,.2,1);
+
+    --thumb-bg:var(--mk-wash);
+    --thumb-ratio:4/3;
+    --li-border:1px solid var(--mk-hair);
+    --sec-border:0 solid transparent;
+    --ph-weight:500; --ph-tt:none; --ph-ls:0;
+    --badge-radius:999px;
+    --grid-min:224px; --grid-gap:24px;
+  }
+  html[data-style="marche"][data-dark]{
+    --sky1:#0d0d0d; --sky2:#131313; --sky3:#191919; --sky4:#202020; --sky5:#282828;
+    --ink:#eeeae3; --ink-soft:#a09b93; --masthead:#eeeae3;
+    --accent:#c93c1f; --accent-d:#ff8466; --acc-l:#c93c1f;
+    --warn:#e0a84a; --on-accent:#ffffff;
+    --line:rgba(238,234,227,.28);
+    --acc-glow:rgba(201,60,31,.72); --acc-line:rgba(201,60,31,.4); --acc-soft:rgba(201,60,31,.15);
+    --ph-color:rgba(238,234,227,.78); --ink-a16:rgba(238,234,227,.16); --ink-a30:rgba(238,234,227,.3);
+    /* sur fond sombre une ombre tirée de l'encre (claire) ferait un halo :
+       on revient au noir, et un filet un peu plus net dessine le bord */
+    --mk-hair:color-mix(in srgb,var(--ink) 11%,transparent);
+    --mk-wash:color-mix(in srgb,var(--ink) 6%,var(--sky5));
+    --mk-shadow:0 22px 36px -22px rgba(0,0,0,.85),0 0 0 1px color-mix(in srgb,var(--ink) 16%,transparent);
+    --sh-bar:0 14px 30px -18px rgba(0,0,0,.8);
+  }
+  html[data-style="marche"] body{text-rendering:optimizeLegibility;}
+  html[data-style="marche"] :focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+
+  /* ---------- colonne de gauche ---------- */
+  html[data-style="marche"] .side{border-right:none;padding:28px 22px 76px;}
+  html[data-style="marche"] .masthead{font-size:36px;font-weight:600;line-height:.95;letter-spacing:-.025em;
+    font-variation-settings:"opsz" 72;}
+  html[data-style="marche"] .masthead small{font-family:var(--font-ui);font-size:10px;font-weight:600;
+    letter-spacing:.18em;margin-top:9px;color:var(--ink-soft);}
+  /* le filet de tête : un tiret d'encre, pas une ligne pleine */
+  html[data-style="marche"] .rule{width:28px;height:2px;border-radius:2px;background:var(--ink);margin:16px 0 20px;}
+  html[data-style="marche"] .search{font-weight:500;padding-top:11px;padding-bottom:11px;}
+  html[data-style="marche"] .search:focus{border-color:var(--mk-hair-2);}
+  html[data-style="marche"] .facet-head .label{font-size:10.5px;letter-spacing:.1em;}
+  html[data-style="marche"] .chip{font-weight:500;font-size:12.5px;padding:5px 12px;color:var(--ink);
+    background:transparent;}
+  html[data-style="marche"] .chip:not(.on):hover{background:var(--mk-wash);border-color:var(--mk-hair-2);color:var(--ink);transform:none;}
+  html[data-style="marche"] .chip.on{border-color:transparent;color:var(--on-accent);}
+  html[data-style="marche"] .chip.on:hover{background:color-mix(in srgb,var(--accent) 88%,#000);transform:none;}
+  html[data-style="marche"] .chip .n{font-weight:500;font-variant-numeric:tabular-nums;}
+  html[data-style="marche"] .modebtn{background:transparent;}
+  html[data-style="marche"] .filter-toggle{background:transparent;font-weight:600;letter-spacing:.06em;
+    text-transform:uppercase;font-size:11px;border-radius:var(--radius);color:var(--ink-soft);}
+  html[data-style="marche"] #planBtn{border-radius:var(--radius);font-weight:600;letter-spacing:.06em;padding:13px;}
+  html[data-style="marche"]:not([data-view="planner"]) #planBtn:hover{filter:none;
+    background:color-mix(in srgb,var(--accent) 88%,#000);}
+  html[data-style="marche"] #notesBtn,html[data-style="marche"] #apprBtn{border-color:transparent;
+    font-weight:600;letter-spacing:.08em;border-radius:var(--radius);}
+  html[data-style="marche"] #notesBtn[aria-expanded="true"],
+  html[data-style="marche"] #apprBtn[aria-expanded="true"]{background:var(--mk-wash);border-color:var(--mk-hair);}
+  html[data-style="marche"] .themebar,
+  html[data-style="marche"] .notes-panel{border-radius:12px;box-shadow:none;}
+  html[data-style="marche"] .sbtn{font-weight:600;}
+  html[data-style="marche"] .sbtn:not(.on):hover{color:var(--ink);transform:none;}
+
+  /* ---------- barre du haut ---------- */
+  html[data-style="marche"] .count-h{font-weight:600;letter-spacing:.1em;font-size:11px;}
+  html[data-style="marche"] .clear,
+  html[data-style="marche"] .back,
+  html[data-style="marche"] .d-tag{background:transparent;font-weight:600;}
+  html[data-style="marche"] .clear:hover,
+  html[data-style="marche"] .back:hover{background:var(--mk-wash);color:var(--ink);transform:none;}
+  html[data-style="marche"] .back{border-radius:var(--pill);padding:7px 15px 7px 12px;}
+  html[data-style="marche"] .atag{font-weight:600;}
+
+  /* ---------- cartes : un tirage serti dans une fiche ---------- */
+  html[data-style="marche"] .card{transition:transform .28s var(--ease-pop),box-shadow .28s,border-color .2s;}
+  html[data-style="marche"] .card:hover{border-color:var(--mk-hair-2);}
+  html[data-style="marche"] .thumb{margin:7px 7px 0;border-radius:9px;border-bottom:none;}
+  html[data-style="marche"] .card:hover .thumb img{transform:scale(1.035);}
+  html[data-style="marche"] .card-body{padding:12px 14px 14px;}
+  html[data-style="marche"] .card-tags{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:1;}
+  html[data-style="marche"] .card-title{font-size:19.5px;line-height:1.15;margin-top:5px;
+    font-variation-settings:"opsz" 36;}
+  html[data-style="marche"] .card-meta{font-size:12.5px;font-weight:500;letter-spacing:0;
+    font-variant-numeric:tabular-nums;}
+  /* la vignette est déjà un cadre : pas de second filet autour du titre */
+  html[data-style="marche"] .thumb .ph.ph-titre{border-color:transparent;}
+  html[data-style="marche"] .ph-titre span{font-family:"Fraunces",Georgia,serif;font-weight:400;
+    font-variation-settings:"opsz" 72;}
+  html[data-style="marche"] .webbadge{background:var(--sky5);color:var(--ink);opacity:.92;font-weight:600;letter-spacing:.04em;}
+
+  /* intertitres de groupe : l'italique parle, la capitale étiquette */
+  html[data-style="marche"] .group-h{font-family:var(--font-display);font-style:italic;font-weight:500;
+    font-size:24px;letter-spacing:-.01em;text-transform:none;color:var(--ink);margin:36px 0 0;
+    padding-bottom:8px;border-bottom:1px solid var(--mk-hair);}
+  html[data-style="marche"] .group-h:first-child{margin-top:4px;}
+  html[data-style="marche"] .group-n{font-family:var(--font-ui);font-style:normal;font-size:12px;font-weight:500;
+    letter-spacing:0;font-variant-numeric:tabular-nums;}
+
+  /* ---------- fiche ---------- */
+  html[data-style="marche"] .d-title{font-size:46px;line-height:1.04;letter-spacing:-.018em;margin:6px 0 20px;
+    font-variation-settings:"opsz" 60;}
+  html[data-style="marche"] .d-hero{border:none;border-radius:16px;}
+  html[data-style="marche"] .d-meta{gap:0;margin-bottom:30px;}
+  html[data-style="marche"] .d-meta div{background:none;border:none;border-radius:0;box-shadow:none;
+    border-left:1px solid var(--mk-hair);padding:2px 22px;}
+  html[data-style="marche"] .d-meta div:first-child{border-left:none;padding-left:0;}
+  html[data-style="marche"] .d-meta .label{font-size:10px;letter-spacing:.12em;margin-bottom:4px;}
+  html[data-style="marche"] .d-meta b{font-size:22px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+  html[data-style="marche"] .sec-h,
+  html[data-style="marche"] .shop-sec h4{font-family:var(--font-display);font-style:italic;font-weight:500;
+    font-size:23px;letter-spacing:-.01em;text-transform:none;color:var(--ink);border-bottom:none;
+    padding-bottom:0;margin-bottom:12px;}
+  html[data-style="marche"] .serve,
+  html[data-style="marche"] .stepper{border-radius:var(--pill);}
+  html[data-style="marche"] .serve .val{font-weight:500;letter-spacing:.06em;}
+  html[data-style="marche"] .serve .val b{font-weight:700;font-variant-numeric:tabular-nums;}
+  html[data-style="marche"] ul.ing li{font-size:16px;padding:9px 0;}
+  html[data-style="marche"] ul.ing .q,
+  html[data-style="marche"] ul.shop-list .q{font-weight:600;}   /* pas de chiffres tabulaires : ils élargissent aussi les points de « c. à s. » */
+  html[data-style="marche"] ul.ing .prep,
+  html[data-style="marche"] .wmsg{font-family:var(--font-note);}
+
+  /* étapes en frise : numéro cerclé, filet jusqu'au suivant */
+  html[data-style="marche"] ol.steps li{padding:0 0 22px 50px;font-size:16.5px;line-height:1.58;}
+  html[data-style="marche"] ol.steps li::before{width:30px;height:30px;top:-1px;background:var(--sky3);
+    border:1.5px solid var(--accent);color:var(--accent);font-size:13.5px;font-weight:700;
+    font-variant-numeric:tabular-nums;z-index:1;}
+  html[data-style="marche"] ol.steps li::after{content:"";position:absolute;left:15px;top:33px;bottom:3px;
+    width:1px;background:var(--mk-hair-2);}
+  html[data-style="marche"] ol.steps li:last-child::after{display:none;}
+  html[data-style="marche"][data-dark] ol.steps li::before{border-color:var(--accent-d);}
+  html[data-style="marche"] .notes{background:var(--mk-wash);border:none;border-radius:12px;
+    padding:16px 20px;font-size:16.5px;line-height:1.5;color:var(--ink);}
+  html[data-style="marche"] .d-fin{border-top-color:var(--mk-hair);}
+  html[data-style="marche"] .imgbtn{border-radius:var(--pill);}
+
+  /* ---------- planificateur ---------- */
+  html[data-style="marche"] .pl-title{font-size:40px;letter-spacing:-.018em;line-height:1.06;font-variation-settings:"opsz" 60;}
+  html[data-style="marche"] .pl-step{color:var(--ink);letter-spacing:.12em;font-size:11px;border-bottom:1px solid var(--mk-hair);}
+  html[data-style="marche"] .pl-or{font-size:16px;}
+  html[data-style="marche"] .pl-go{border-color:transparent;font-weight:600;}
+  html[data-style="marche"] .pl-go:not(.ghost):hover{background:color-mix(in srgb,var(--accent) 88%,#000);transform:none;}
+  html[data-style="marche"] .pl-go.ghost{border-color:var(--mk-hair);}
+  html[data-style="marche"] .pl-rec h4{font-size:18px;}
+  html[data-style="marche"] .rayon h5{color:var(--ink-soft);border-bottom-color:var(--mk-hair);letter-spacing:.12em;}
+  html[data-style="marche"] .pick-bar{background:color-mix(in srgb,var(--sky3) 94%,transparent);
+    border:1px solid var(--mk-hair);border-radius:12px;}
+
+  /* ---------- téléphone ---------- */
+  @media(max-width:780px){
+    html[data-style="marche"] .side{padding:22px 18px 18px;border-bottom:1px solid var(--mk-hair);}
+    html[data-style="marche"] .masthead{font-size:32px;}
+    html[data-style="marche"] .d-title{font-size:32px;}
+    html[data-style="marche"] .pl-title{font-size:30px;}
+    html[data-style="marche"] .d-meta div{padding:2px 16px;}
+    html[data-style="marche"] .group-h{font-size:21px;}
+  }
 </style>
 </head>
 <body>
@@ -3036,7 +3276,7 @@ window.addEventListener("load", function(){ chargerNotes(); });
    ---------------------------------------------------------------------
    Trois réglages indépendants, tous mémorisés dans localStorage :
 
-     STYLE    -> <html data-style="glass|vintage|editorial">
+     STYLE    -> <html data-style="glass|vintage|editorial|marche">
                  La peau complète (polices, rayons, ombres, reflets).
                  Définie en CSS dans un bloc html[data-style="…"]{…}.
      PALETTE  -> variables de couleur posées en ligne sur :root.
@@ -3081,6 +3321,22 @@ window.addEventListener("load", function(){ chargerNotes(); });
         {name:"Moutarde",       s:["#e8dcb8","#efe6cb","#f4eeda","#f8f4e8","#fcfaf2"], ink:"#2b2415", inkSoft:"#5e553c", accL:"#8f6410", accent:"#8f6410", accentD:"#6b4a0a", warn:"#8a3a20", onAccent:"#fcfaf2"},
         {name:"Orange brûlée",  s:["#ecd8c4","#f2e3d3","#f6ece0","#faf4ec","#fdfaf5"], ink:"#2b1d14", inkSoft:"#634d3b", accL:"#ab4d1a", accent:"#ab4d1a", accentD:"#803811", warn:"#3a5a5d", onAccent:"#fdfaf5"},
         {name:"Sépia",          s:["#e3d9c8","#ece4d6","#f2ece0","#f7f3ea","#fbf9f3"], ink:"#2a2119", inkSoft:"#615345", accL:"#6b5340", accent:"#6b5340", accentD:"#4d3a2b", warn:"#8a3a20", onAccent:"#fbf9f3"}
+      ]
+    },
+    {
+      /* Marché (29 octobre 2026) : le style dessiné sans consigne de style.
+         Tomate par défaut ; sombre réglé à la main (gris neutres, comme les
+         autres styles) : remplissage #c93c1f (texte blanc 5,1:1), texte
+         d'accent #ff8466 (6,1:1 sur la carte la plus claire). */
+      id:"marche", name:"Marché",
+      fonts:["Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700","Schibsted+Grotesk:ital,wght@0,400..700;1,400..700"],
+      palettes:[
+        {name:"Tomate",  s:["#e7e2d8","#eeeae2","#f3efe7","#f9f7f2","#ffffff"], ink:"#1d1b17", inkSoft:"#6b665c", accL:"#b8321a", accent:"#b8321a", accentD:"#932714", warn:"#8a5d0a", onAccent:"#ffffff",
+         sombre:{s:["#0d0d0d","#131313","#191919","#202020","#282828"], ink:"#eeeae3", inkSoft:"#a09b93", accL:"#c93c1f", accent:"#c93c1f", accentD:"#ff8466", warn:"#e0a84a", onAccent:"#ffffff"}},
+        {name:"Cerise",  s:["#e7e2d8","#eeeae2","#f3efe7","#f9f7f2","#ffffff"], ink:"#1d1b17", inkSoft:"#6b665c", accL:"#ae292d", accent:"#ae292d", accentD:"#841f22", warn:"#8a5d0a", onAccent:"#ffffff",
+         sombre:{s:["#0d0d0d","#131313","#191919","#202020","#282828"], ink:"#eeeae3", inkSoft:"#a09b93", accL:"#d1343b", accent:"#d1343b", accentD:"#ff6b70", warn:"#e0a84a", onAccent:"#ffffff"}},
+        {name:"Basilic", s:["#e2e4dc","#eaece5","#f0f2ec","#f7f8f4","#ffffff"], ink:"#191d1a", inkSoft:"#5e655f", accL:"#2d6a3e", accent:"#2d6a3e", accentD:"#1f4d2c", warn:"#8a4a0a", onAccent:"#ffffff"},
+        {name:"Prune",   s:["#e6e1e3","#ede9ea","#f3eff0","#f9f7f7","#ffffff"], ink:"#1e1a1c", inkSoft:"#665e62", accL:"#6b2f5c", accent:"#6b2f5c", accentD:"#4f2244", warn:"#8a5d0a", onAccent:"#ffffff"}
       ]
     },
     {
@@ -3143,13 +3399,19 @@ window.addEventListener("load", function(){ chargerNotes(); });
   /* --- polices chargées à la demande (Titillium + Newsreader sont déjà
          dans le <head> pour que le premier rendu soit juste) --- */
   const loadedFonts=new Set((STYLES.find(s=>s.id==="vintage")||{fonts:[]}).fonts);   // déjà dans le <head>
+  /* les polices du dernier style vu ont été demandées par le script de tête
+     (carnet_fonts_eff) : inutile de les redemander */
+  (function(){ const pre=(STYLES.find(s=>s.id===get("carnet_style_eff"))||{fonts:[]});
+    if(get("carnet_fonts_eff")) pre.fonts.forEach(f=>loadedFonts.add(f)); })();
+  function fontsUrl(list){
+    return "https://fonts.googleapis.com/css2?"+list.map(f=>"family="+f).join("&")+"&display=swap"; }
   function ensureFonts(st){
     const missing=st.fonts.filter(f=>!loadedFonts.has(f));
     if(!missing.length) return;
     missing.forEach(f=>loadedFonts.add(f));
     const l=document.createElement("link");
     l.rel="stylesheet";
-    l.href="https://fonts.googleapis.com/css2?"+missing.map(f=>"family="+f).join("&")+"&display=swap";
+    l.href=fontsUrl(missing);
     document.head.appendChild(l);
   }
 
@@ -3204,7 +3466,8 @@ window.addEventListener("load", function(){ chargerNotes(); });
   const SURFACES={
     editorial:{card:[4,0],   col:[2,0],   page:[4,0], accentAsText:true},
     vintage:  {card:[4,0],   col:[1,0],   page:[2,0], accentAsText:true},
-    glass:    {card:[4,0],   col:[2,0],   page:[2,0]}
+    glass:    {card:[4,0],   col:[2,0],   page:[2,0]},
+    marche:   {card:[4,0],   col:[1,0],   page:[2,0], accentAsText:true}
   };
 
   function relLum(c){ c=c.map(function(x){ x/=255;
@@ -3358,6 +3621,7 @@ window.addEventListener("load", function(){ chargerNotes(); });
     root.setAttribute("data-img",img);
     applyPalette(effPal(si,pi));
     set("carnet_style_eff",st.id);
+    set("carnet_fonts_eff", st.fonts.length ? fontsUrl(st.fonts) : "");
     set("carnet_vars_"+(dark?"1":"0"),root.getAttribute("style")||"");
   }
 
