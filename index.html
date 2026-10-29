@@ -856,6 +856,36 @@
      ===================================================================== */
   html[data-dark]{color-scheme:dark;}
 
+  /* =====================================================================
+     BARRES DE DÉFILEMENT (29 octobre 2026)
+     Val les trouvait trop présentes et étrangères au thème. Une pastille
+     fine, sans flèches ni rail, tirée de l'encre du style : elle se voit
+     au besoin et fonce au survol. Chaque style peut régler ses jetons
+     (--sb-*). Chromium et Safari passent par ::-webkit-scrollbar (seul
+     moyen d'avoir une pastille détachée du bord) ; Firefox, qui ne les
+     connaît pas, reçoit les propriétés standard. Sur iPhone, les barres
+     superposées du système restent telles quelles.
+     ===================================================================== */
+  :where(html){
+    --sb-thumb:color-mix(in srgb,var(--ink) 22%,transparent);
+    --sb-thumb-hov:color-mix(in srgb,var(--ink) 40%,transparent);
+    --sb-size:12px;   /* largeur de la zone ; la pastille visible fait la moitié */
+    --sb-inset:3px;   /* marge transparente autour de la pastille */
+  }
+  @supports selector(::-webkit-scrollbar){
+    ::-webkit-scrollbar{width:var(--sb-size);height:var(--sb-size);background:transparent;}
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner{background:transparent;}
+    ::-webkit-scrollbar-button{display:none;width:0;height:0;}
+    ::-webkit-scrollbar-thumb{background-color:var(--sb-thumb);background-clip:padding-box;
+      border:var(--sb-inset) solid transparent;border-radius:999px;min-height:40px;}
+    ::-webkit-scrollbar-thumb:hover{background-color:var(--sb-thumb-hov);}
+    ::-webkit-scrollbar-thumb:active{background-color:var(--sb-thumb-hov);}
+  }
+  @supports not selector(::-webkit-scrollbar){
+    html,.side{scrollbar-width:thin;scrollbar-color:var(--sb-thumb) transparent;}
+  }
+
   /* --------------------------------------------------------------------
      PALETTE DU PREMIER RENDU (Vintage / Rouge cerise)
      Valeurs relevées sur la palette calculée, recopiées ici en dur pour
@@ -1286,8 +1316,10 @@
     padding:24px 16px 40px;border:none;border-radius:var(--lg-r-xl);
     background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));
     box-shadow:var(--lg-glass-shadow),inset 0 1px .5px var(--lg-glass-edge),
-      inset 0 -1px .5px var(--lg-glass-rim),inset 0 0 0 .5px var(--lg-glass-edge);
-    scrollbar-width:thin;scrollbar-color:var(--lg-fill-2) transparent;}
+      inset 0 -1px .5px var(--lg-glass-rim),inset 0 0 0 .5px var(--lg-glass-edge);}
+  /* barres de défilement : gris système d'Apple (règle commune « BARRES DE DÉFILEMENT ») */
+  html[data-style="glass"]{--sb-thumb:var(--lg-fill-2);--sb-inset:3px;}
+  html[data-style="glass"] .side{--sb-inset:4px;}   /* la pastille s'écarte du bord arrondi du panneau */
   html[data-style="glass"] .masthead{font-size:2.125rem;font-weight:700;letter-spacing:-.025em;
     line-height:1.12;color:var(--ink);padding:0 4px;}
   html[data-style="glass"] .masthead small{font-size:.8125rem;letter-spacing:0;text-transform:none;
@@ -1666,6 +1698,11 @@
     --sh-bar:0 14px 30px -18px rgba(0,0,0,.8);
   }
   html[data-style="marche"] body{text-rendering:optimizeLegibility;}
+  /* barres de défilement : un filet appuyé, comme les bords des cartes au
+     survol ; plus fines dans la colonne, où elles longent les filtres */
+  html[data-style="marche"]{--sb-thumb:var(--mk-hair-2);
+    --sb-thumb-hov:color-mix(in srgb,var(--ink) 34%,transparent);--sb-size:11px;--sb-inset:3px;}
+  html[data-style="marche"] .side{--sb-size:9px;--sb-inset:2.5px;}
   html[data-style="marche"] :focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
 
   /* ---------- colonne de gauche ---------- */
