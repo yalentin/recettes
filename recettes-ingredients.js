@@ -63,7 +63,7 @@ window.INGREDIENTS = [
   // — Féculents & secs —
   {name:"Cerneaux de noix", aliases:["Noix torréfiées"], unit:"g", rayon:"Féculents & secs"},
   {name:"Feuilles de riz (18-22 cm)", aliases:[], unit:"", rayon:"Féculents & secs"},
-  {name:"Graines de sésame", aliases:["Sésame grillé", "Sésame torréfié", "Graines de sésame blanc"], unit:"c. à s.", rayon:"Féculents & secs"},
+  {name:"Graines de sésame", aliases:["Sésame grillé", "Sésame torréfié", "Graines de sésame blanc", "Graines de sésame doré"], unit:"c. à s.", rayon:"Féculents & secs"},
   {name:"Gruau de blé (boulgour)", aliases:[], unit:"g", rayon:"Féculents & secs"},
   {name:"Mie de pain de campagne", aliases:[], unit:"g", rayon:"Féculents & secs"},
   {name:"Nouilles", aliases:["Nouilles (type non précisé)"], unit:"g", rayon:"Féculents & secs"},
@@ -148,7 +148,7 @@ window.INGREDIENTS = [
   {name:"Pâte à wonton", aliases:["Carrés de pâte pour wonton ou nem", "Pâte pour wonton"], unit:"", rayon:"Crémerie & frais"},
   {name:"Petits pois surgelés", aliases:["Petits pois"], unit:"c. à s.", rayon:"Crémerie & frais"},
   // — Féculents & secs —
-  {name:"Farine de blé", aliases:["Farine tout usage", "Farine blanche forte", "Farine"], unit:"g", rayon:"Féculents & secs"},
+  {name:"Farine de blé", aliases:["Farine tout usage", "Farine blanche forte", "Farine", "Farine de blé T65"], unit:"g", rayon:"Féculents & secs"},
   {name:"Farine de riz", aliases:[], unit:"g", rayon:"Féculents & secs"},
   {name:"Farine de pois chiche", aliases:[], unit:"g", rayon:"Féculents & secs"},
   {name:"Chapelure", aliases:[], unit:"g", rayon:"Féculents & secs"},
@@ -291,7 +291,7 @@ window.INGREDIENTS = [
   {name:"Cottage cheese", aliases:["Cottage-cheese"], unit:"g", rayon:"Crémerie & frais"},
   {name:"Cheddar", aliases:[], unit:"g", rayon:"Crémerie & frais"},
   {name:"Roquefort", aliases:[], unit:"g", rayon:"Crémerie & frais"},
-  {name:"Fromage râpé", aliases:["Gruyère râpé","Emmental râpé"], unit:"g", rayon:"Crémerie & frais"},
+  {name:"Fromage râpé", aliases:["Gruyère râpé","Emmental râpé","Comté râpé","Beaufort râpé"], unit:"g", rayon:"Crémerie & frais"},
   // — Féculents & secs —
   {name:"Lasagnes fraîches", aliases:["Feuilles de lasagne fraîches"], unit:"g", rayon:"Féculents & secs"},
   {name:"Plaques de lasagnes", aliases:["Lasagnes sèches"], unit:"", rayon:"Féculents & secs"},
