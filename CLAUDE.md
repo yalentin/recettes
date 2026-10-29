@@ -44,11 +44,27 @@ Deux propriétaires qui ne se recoupent pas : le skill écrit les recettes, la p
   y compris dans le cloud. Avant d'envoyer une modification de `index.html`,
   vérifier dans Chromium (Playwright) : aucune erreur JavaScript, rendu à 390 px
   (iPhone) et 1440 px, en clair et en sombre.
+- **Commentaires et ajustements depuis un chat** : Val discute du carnet dans le
+  projet claude.ai « Recettes ». Un chat de ce projet qui doit toucher au carnet
+  attache le dépôt `yalentin/recettes` (accès en écriture), le clone, lit ce
+  fichier, puis travaille comme n'importe quelle session : modification, tests,
+  commit, `git push` sur `main`. Avant de modifier : `git pull --rebase`, parce
+  que la page et l'ingestion écrivent aussi dans le dépôt.
+  - Un retour de Val sur le **fonctionnement** (règle d'ingestion, format,
+    tags…) se traduit par une modification du skill ou de ce fichier, pas
+    seulement par une réponse dans le chat : sinon la prochaine session l'ignore.
+  - L'**ingestion** reste sur l'ordinateur (les sources y sont). Depuis un chat,
+    seulement si Val le demande et si le chat est relié à son ordinateur ; les
+    sources ne transitent alors que pour être lues, jamais vers le dépôt.
+  - Ne jamais committer `recettes-notes.json` depuis une copie de travail : il
+    appartient à la page. Si un test l'a modifié, `git checkout -- recettes-notes.json`.
 
 ## Décisions déjà prises (ne pas les défaire sans que Val le demande)
 
-Historique détaillé : anciens docs du projet claude.ai « Recettes »
-(critique du design du 20 septembre 2026, audit mobile du 3 octobre 2026).
+Historique détaillé et raisons de ces choix : `docs/historique/` (critique du
+design du 20 septembre 2026, audit mobile du 3 octobre 2026). Ces textes décrivent
+encore l'ancien fonctionnement local pour les notes et les images ; seules les
+décisions de design résumées ci-dessous font foi.
 
 - **Apparence** : trois styles (Liquid Glass par défaut, Vintage, Éditorial ;
   `STYLE_DEFAUT` en tête de `index.html`). Aqua, Suisse, Brutal et Mono ont été

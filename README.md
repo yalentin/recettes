@@ -74,11 +74,26 @@ le skill écrit lui-même les étapes. Jamais les quantités, les ingrédients n
 titre. La recette porte alors « ⚠️ Étapes reconstruites par l'agent » en tête de
 ses notes, et une ALERTE au journal : relis-les.
 
-## Modifier le site
+## Faire évoluer le carnet (commentaires, ajustements)
 
-Depuis une session Claude Code, sur l'ordinateur ou dans le cloud (y compris
-depuis l'onglet Code de l'app iPhone), sur le dépôt `yalentin/recettes`. Les
-règles du projet sont dans `CLAUDE.md`. Pour revenir en arrière, tout est dans
+Le plus simple : ouvrir un chat dans le projet claude.ai **« Recettes »** et dire ce
+qui ne va pas ou ce que tu veux changer. Ça peut être le site (« la pastille est
+trop grosse ») ou le fonctionnement (« arrête de mettre le tag Froid sur les
+apéros »). Claude y trouve la marche à suivre : il ouvre le dépôt, fait la
+modification, la teste et la met en ligne.
+
+Ça marche aussi depuis une session Claude Code, sur l'ordinateur ou dans le cloud
+(y compris depuis l'onglet Code de l'app iPhone).
+
+Où vit quoi :
+- `CLAUDE.md` : le fonctionnement du carnet et les décisions déjà prises. C'est
+  la référence que lit toute session, quelle qu'elle soit.
+- `.claude/skills/recette-ingestion/SKILL.md` : les règles de l'ingestion.
+- `docs/historique/` : les anciens comptes rendus de design, pour les raisons de
+  certains choix.
+
+Un retour sur le fonctionnement doit finir dans l'un de ces fichiers, sinon la
+session suivante ne le connaîtra pas. Pour revenir en arrière, tout est dans
 l'historique Git.
 
 ## Les fichiers
