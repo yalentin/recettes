@@ -107,14 +107,19 @@ décisions de design résumées ci-dessous font foi.
   et étoiles sont repliés au premier chargement. Largeur minimale 240 px ;
   dans le panneau Apparence, les boutons passent à la ligne, jamais tronqués.
   Repliable sur écran large (29 octobre 2026) : bouton neutre en haut à droite
-  de la colonne, bouton de réouverture fixé en haut à gauche, état gardé dans
+  de la colonne ; une fois repliée, le titre « Recettes » et le bouton de
+  réouverture apparaissent en tête de la zone principale (`.main-tete`,
+  dans le flux, pas fixés) ; état gardé dans
   `carnet_side_ferme` et posé dès le script de tête ; glisser la poignée sous
   140 px replie aussi. Fiche et planificateur sont centrés dans la zone
   principale (`margin-inline:auto`), pas calés à gauche.
 - **Unités** : écrites au singulier dans les données, accordées par la page
   (`accorderUnite`, liste fermée de noms comptables).
 - **iPhone** : sous 780 px, colonne latérale masquée en vue fiche et filtres
-  repliés par défaut ; fiche organisée pour cuisiner (titre, photo, temps,
+  repliés par défaut ; en-tête compact sur trois rangées (titre + « Mes
+  notes » / « Apparence » en simples liens ; recherche + « Filtres » ;
+  « Planifier mes courses »), sans sous-titre ni filet — Val trouvait que le
+  haut prenait trop de place ; fiche organisée pour cuisiner (titre, photo, temps,
   ingrédients, étapes ; note et image après).
   Les −/+ des personnes font 44 px sur écran tactile ou étroit (règle en fin
   de feuille). En Glass, le « Retour » de la fiche vit dans une barre collante

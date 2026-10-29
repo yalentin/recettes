@@ -214,15 +214,17 @@
   .side-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   .side-btn svg{width:18px;height:18px;display:block;}
   .side-fermer{position:absolute;top:18px;right:14px;z-index:3;}
-  .side-ouvrir{position:fixed;top:18px;left:18px;z-index:31;display:none;}
+  /* Colonne repliée : le titre du carnet ne doit pas disparaître avec elle.
+     Il revient en tête de la zone principale, à côté du bouton qui rouvre. */
+  .main-tete{display:none;align-items:center;gap:12px;margin:-4px 0 20px;}
+  .main-titre{font-family:var(--font-display);font-weight:700;font-size:24px;line-height:1;
+    color:var(--masthead);letter-spacing:-.01em;}
   .side.va-fermer{opacity:.45;transition:opacity .12s;}
   @media(min-width:781px){
     html[data-side="ferme"] .wrap{grid-template-columns:1fr;}
     html[data-side="ferme"] .side,
     html[data-side="ferme"] .resize-handle{display:none;}
-    html[data-side="ferme"] .side-ouvrir{display:flex;}
-    /* place pour le bouton de réouverture, symétrique pour garder le centrage */
-    html[data-side="ferme"] .wrap > .main{padding-left:72px;padding-right:72px;}
+    html[data-side="ferme"] .main-tete{display:flex;}
   }
 
   .side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 20px 76px;
@@ -1798,6 +1800,41 @@
     html[data-style] .serve button,
     html[data-style] .stepper button{width:44px;min-width:44px;height:44px;}
   }
+  /* ---- iPhone : en-tête compact (29 octobre 2026) ----
+     Val trouvait que le haut de la page prenait trop de place (titre,
+     sous-titre, filet, recherche, courses, filtres, notes, apparence : six
+     rangées avant la première recette). Trois rangées désormais :
+       1. titre + « Mes notes » + « Apparence » (réglages discrets) ;
+       2. recherche + « Filtres » ;
+       3. « Planifier mes courses » (l'action principale garde sa ligne).
+     Les panneaux des réglages s'ouvrent juste sous la première rangée.
+     Placé en fin de feuille, préfixé html[data-style] pour passer devant
+     les marges et tailles propres à chaque style. */
+  @media(max-width:780px){
+    html[data-style] .side{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:10px;
+      padding:14px 14px 14px;}
+    html[data-style] .side > *{flex:0 0 100%;margin:0;min-width:0;}
+    html[data-style] .side > .side-btn{flex:none;}
+    html[data-style] .side .masthead{flex:1 1 auto;order:0;font-size:26px;line-height:1.05;}
+    html[data-style] .side .masthead small,
+    html[data-style] .side .rule{display:none;}
+    html[data-style] #notesBtn,
+    html[data-style] #apprBtn{flex:0 0 auto;width:auto;order:1;min-height:40px;padding:0 10px;
+      font-size:13px;gap:6px;justify-content:center;letter-spacing:.02em;}
+    /* fermés, ce sont des liens de réglage, pas des boutons encadrés */
+    html[data-style] #notesBtn:not([aria-expanded="true"]),
+    html[data-style] #apprBtn:not([aria-expanded="true"]){background:transparent;border-color:transparent;box-shadow:none;}
+    html[data-style] #apprBtn{order:2;}
+    html[data-style] #notesPanel,
+    html[data-style] #themebar{order:3;}
+    /* base de 60 % : trop large pour se glisser au bout de la 1re rangée,
+       assez étroite pour partager la 2e avec « Filtres » */
+    html[data-style] .side .search-wrap{flex:1 1 60%;order:4;}
+    html[data-style] #filterToggle{flex:0 0 auto;width:auto;order:5;padding:0 14px;min-height:42px;}
+    html[data-style] #planBtn{order:6;}
+    html[data-style] #facets{order:7;}
+    html[data-style] .side .search{min-height:42px;}
+  }
 </style>
 </head>
 <body>
@@ -1818,9 +1855,12 @@
     <button id="apprBtn" class="appr-btn" type="button" aria-expanded="false" aria-controls="themebar">Apparence</button>
     <div id="themebar" class="themebar" role="dialog" aria-label="Apparence" hidden></div>
   </aside>
-  <button id="sideOuvrir" class="side-btn side-ouvrir" type="button" aria-controls="side" aria-expanded="false" aria-label="Afficher la colonne latérale" title="Afficher la colonne latérale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/><path d="M7.5 3.5v13"/></svg></button>
   <div class="resize-handle" id="resizeHandle" title="Redimensionner la barre latérale" role="separator" aria-orientation="vertical"></div>
   <main class="main">
+    <div class="main-tete">
+    <button id="sideOuvrir" class="side-btn side-ouvrir" type="button" aria-controls="side" aria-expanded="false" aria-label="Afficher la colonne latérale" title="Afficher la colonne latérale"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/><path d="M7.5 3.5v13"/></svg></button>
+      <span class="main-titre" aria-hidden="true">Recettes</span>
+    </div>
     <section id="listView">
       <div class="topbar">
         <span id="countH" class="count-h"></span>
