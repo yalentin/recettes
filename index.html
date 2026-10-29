@@ -180,7 +180,11 @@
   .resize-handle{position:fixed;top:0;bottom:0;left:var(--side-w);width:12px;margin-left:-6px;z-index:30;
     cursor:col-resize;display:flex;align-items:center;justify-content:center;touch-action:none;}
   .resize-handle::before{content:"";width:3px;height:48px;border-radius:3px;background:var(--line);
-    box-shadow:var(--sh-in);transition:background .15s,height .15s,width .15s;}
+    box-shadow:var(--sh-in);opacity:0;transition:background .15s,height .15s,width .15s,opacity .15s;}
+  /* Au repos, le trait est caché : posé sur le bord de la colonne, il se
+     confondait avec l'ascenseur du menu (deux « barres » côte à côte).
+     Il apparaît au survol, le curseur col-resize suffit à le signaler. */
+  .resize-handle:hover::before,.resize-handle.drag::before{opacity:1;}
   .resize-handle:hover::before,.resize-handle.drag::before{background:var(--accent);height:74px;width:4px;}
 
   .side{position:sticky;top:0;height:100vh;overflow-y:auto;padding:24px 20px 76px;
@@ -197,6 +201,7 @@
     background:linear-gradient(90deg,var(--acc-line),var(--acc-soft),transparent);}
 
   .search-wrap{position:relative;}
+  .search:placeholder-shown{padding-right:13px !important;}
   .search{width:100%;padding:10px 34px 10px 13px;border:var(--bd-w) solid var(--bd);border-radius:var(--radius);
     background:var(--surface-ctl);font-family:var(--font-ui);font-size:15px;color:var(--ink);font-weight:600;
     box-shadow:var(--sh-field);}
@@ -756,16 +761,11 @@
     /* le panneau vit dans la barre latérale défilante : pleine largeur de la
        colonne, il coule dans le défilement du menu (plus de popover fixe). */
     width:100%;}
-  /* Chaque ligne est une grille : le nombre de colonnes est imposé, donc le
-     retour à la ligne ne dépend plus de la largeur du texte des boutons —
-     qui change avec la police de chaque style. Les 6 styles font toujours
-     3 + 3, quel que soit le style courant. */
-  .tb-row{display:grid;gap:7px 8px;align-items:center;}
-  /* minmax(0,1fr) et non 1fr : sur une fenêtre étroite les colonnes doivent
-     pouvoir passer sous leur largeur de contenu au lieu de déborder. */
-  .tb-styles{grid-template-columns:repeat(3,minmax(0,1fr));}
-  .tb-pal{grid-template-columns:repeat(6,auto);justify-content:start;}
-  .tb-two{grid-template-columns:repeat(2,minmax(0,1fr));}
+  /* Chaque ligne coule (flex + retour à la ligne) : quand la colonne est
+     étroite (210 px minimum) ou le texte agrandi, un bouton passe à la ligne
+     suivante au lieu d'être coupé (« VIGN… ») ou de déborder (pastilles). */
+  .tb-row{display:flex;flex-wrap:wrap;align-items:center;gap:7px 6px;}
+  .tb-row .tb-label{flex-basis:100%;}
   .themebar .tb-label{font-family:var(--font-ui);font-size:9.5px;font-weight:700;
     letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);opacity:.85;
     grid-column:1/-1;margin-bottom:-2px;}
@@ -795,13 +795,11 @@
   @media print{.themebar,.appr-btn,.resize-handle{display:none;}}
   /* Mode : 3 boutons qui se partagent la ligne sans jamais tronquer « Sombre »
      (capitales espacées en Vintage et Éditorial) */
-  .tb-three{display:flex;flex-wrap:wrap;gap:6px;}
-  .tb-three .tb-label{flex-basis:100%;}
-  .tb-three .sbtn{flex:1 1 auto;overflow:visible;}
-  /* 7 styles : les noms coulent sur la ligne (une grille fixe tronquait « Liquid Glass ») */
-  .tb-styles{display:flex;flex-wrap:wrap;gap:6px;}
-  .tb-styles .tb-label{flex-basis:100%;}
-  .tb-styles .sbtn{flex:0 0 auto;padding-left:10px;padding-right:10px;}
+  /* Dans le panneau, jamais de texte tronqué : le bouton garde sa largeur
+     de contenu et s'étire pour remplir sa ligne. */
+  .themebar .sbtn{flex:1 1 auto;min-width:auto;overflow:visible;padding-left:10px;padding-right:10px;}
+  .tb-styles .sbtn{flex-grow:0;}
+  .tb-pal{gap:8px;padding:2px 0;}
 
   /* =====================================================================
      PALETTES SOMBRES
@@ -914,7 +912,7 @@
   /* 6. Facettes repliables. Tout reste ouvert par défaut : rien ne change
         tant qu'on n'a pas replié soi-même. L'état est mémorisé. */
   .facet-head{cursor:pointer;}
-  .facet-name{display:flex;align-items:center;gap:6px;background:none;border:none;padding:0;margin:0;
+  .facet-name{display:flex;align-items:baseline;gap:6px;background:none;border:none;padding:0;margin:0;
     cursor:pointer;color:inherit;font:inherit;text-align:left;flex:1;}
   .facet-caret{font-size:9px;opacity:.55;transition:transform .15s;display:inline-block;}
   .facet.closed .facet-caret{transform:rotate(-90deg);}
@@ -1955,7 +1953,7 @@ function renderList(){
       <div class="card-body">
         <div class="card-tags label" style="font-size:10.5px">${tags}</div>
         <h3 class="card-title">${r.title}</h3>
-        <div class="card-meta">Pour ${r.serves} · ${total?fmtTime(total):"—"}</div>
+        <div class="card-meta">Pour ${r.serves}${total?` · ${fmtTime(total)}`:""}</div>
         ${noteRowHtml(r.id)}
       </div></article>`;
   };
@@ -2000,6 +1998,8 @@ function openRecipe(id, origin){
   const d=$("#detailView"); d.style.display="block";
   const total=(r.prep||0)+(r.cook||0);
   const metaItem=(lbl,val)=>val?`<div><span class="label">${lbl}</span><b>${val}</b></div>`:"";
+  // Recette sans aucun temps : pas de rangée vide (elle creusait un trou sous la photo)
+  const dMeta=metaItem("Préparation",fmtTime(r.prep))+metaItem("Cuisson",fmtTime(r.cook))+metaItem("Total",total?fmtTime(total):null);
   // Si l'URL externe ne répond plus, on retire AUSSI le badge de provenance :
   // « illustration web » posé sur un cartouche vide ne désigne plus rien.
   const im = imageDe(r);
@@ -2039,11 +2039,7 @@ function openRecipe(id, origin){
     <div class="d-tags">${(r.tags||[]).map(t=>`<span class="d-tag">${t}</span>`).join("")}</div>
     <h1 class="d-title">${r.title}</h1>
     ${hero?`<div class="d-hero${enEnvoi?' en-envoi':''}">${hero}${enEnvoi?'':heroWeb}</div>`:""}
-    <div class="d-meta">
-      ${metaItem("Préparation",fmtTime(r.prep))}
-      ${metaItem("Cuisson",fmtTime(r.cook))}
-      ${metaItem("Total",total?fmtTime(total):null)}
-    </div>
+    ${dMeta?`<div class="d-meta">${dMeta}</div>`:""}
     <div class="d-cols">
       <div>
         <h3 class="label sec-h">Ingrédients</h3>
