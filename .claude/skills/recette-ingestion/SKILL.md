@@ -198,6 +198,11 @@ assaisonnement). En cas d'hésitation sur un ingrédient précis, ne pas mettre
 Ingrédient **sans quantité** (« au goût », « à volonté ») : mettre `qty: null` et
 placer la mention dans `unit`. La visionneuse l'affichera tel quel, invariable.
 
+Unité comptable (`gousse`, `feuille`, `pincée`, `brin`, `tranche`…) : toujours
+**au singulier** dans `unit`, quelle que soit la quantité. La page l'accorde
+elle-même à l'affichage selon la quantité mise à l'échelle (`accorderUnite`) ;
+une unité écrite au pluriel donnerait « 1 gousses » pour une personne.
+
 ## 6. Tags : vocabulaire contrôlé
 
 Les tags posés sur une recette doivent venir de `window.FACETTES`

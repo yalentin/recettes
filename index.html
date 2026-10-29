@@ -1469,6 +1469,38 @@
     html[data-style="glass"] .pick-bar{background:none;box-shadow:none;
       -webkit-backdrop-filter:none;backdrop-filter:none;}
   }
+
+  /* =====================================================================
+     HIÉRARCHIE DE LA COLONNE (critique du 29 octobre 2026)
+     Règle : l'accent va à l'action principale et aux filtres actifs.
+     - « Planifier mes courses » est l'action principale : remplissage accent.
+     - « Mes notes » et « Apparence » sont des réglages : boutons discrets
+       avec un chevron, qui ne virent plus au rouge plein une fois ouverts.
+     - ET / OU est un mode de la facette, pas un filtre actif : neutre.
+     ===================================================================== */
+  html:not([data-view="planner"]) #planBtn{background:var(--accent-fill);color:var(--on-accent);
+    text-shadow:var(--on-accent-sh);border-color:transparent;}
+  html:not([data-view="planner"]) #planBtn:hover{filter:brightness(1.06);}
+  html[data-style="glass"]:not([data-view="planner"]) #planBtn{background:var(--accent);color:var(--on-accent);}
+  html[data-style="glass"]:not([data-view="planner"]) #planBtn:hover{background:var(--accent);}
+
+  html[data-style] #notesBtn,html[data-style] #apprBtn{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:transparent;box-shadow:none;color:var(--ink-soft);text-shadow:none;}
+  html[data-style] #notesBtn:hover,html[data-style] #apprBtn:hover{background:var(--ink-a16);color:var(--ink);}
+  html[data-style] #notesBtn[aria-expanded="true"],html[data-style] #apprBtn[aria-expanded="true"]{
+    background:var(--ink-a16);color:var(--ink);border-color:var(--bd);}
+  #notesBtn::after,#apprBtn::after{content:"▾";font-size:.8em;opacity:.6;transform:rotate(-90deg);
+    transition:transform .15s;flex:0 0 auto;}
+  #notesBtn[aria-expanded="true"]::after,#apprBtn[aria-expanded="true"]::after{transform:none;}
+  html[data-style="glass"] #notesBtn,html[data-style="glass"] #apprBtn{min-height:40px;}
+  html[data-style="editorial"] #notesBtn,html[data-style="editorial"] #apprBtn,
+  html[data-style="vintage"] #notesBtn,html[data-style="vintage"] #apprBtn{justify-content:center;}
+
+  html[data-style] .modebtn.et,
+  html[data-style] .modebtn.et:hover,
+  html[data-style][data-dark] .modebtn.et:hover{background:transparent;color:var(--ink);
+    border:var(--bd-w) solid var(--ink-a30);box-shadow:none;text-shadow:none;}
+  html[data-style="glass"] .modebtn.et{border:1px solid var(--ink-a30);}
 </style>
 </head>
 <body>
@@ -1785,10 +1817,24 @@ function fmtTime(min){
   const h=Math.floor(min/60), m=min%60;
   return h?(m?`${h} h ${m}`:`${h} h`):`${m} min`;
 }
+/* Les unités sont écrites au singulier dans les données (« gousse »,
+   « feuille ») ; la page les accorde à l'affichage, après mise à l'échelle
+   des portions. Seulement les noms comptables de cette liste : les
+   abréviations (g, c. à s.) et les mentions libres restent telles quelles. */
+const UNITES_ACCORDABLES=new Set(["pincée","gousse","feuille","tasse","bouquet","cube","morceau",
+  "branche","tranche","botte","tête","tige","bol","rouleau","verre","boîte","brin","grain","fil",
+  "pointe","disque","poignée","filet","palet","quartier","barquette","cuillère","noix","sachet","pot"]);
+function accorderUnite(u,q){
+  if(!u || !(q>=2)) return u;
+  const t=u.trim();
+  if(!UNITES_ACCORDABLES.has(t)) return u;
+  if(/[sxz]$/.test(t)) return t;
+  return /(eau|au)$/.test(t) ? t+"x" : t+"s";
+}
 function qtyText(ing,factor){
   if(ing.qty==null) return ing.unit||"—";
   const q=ing.qty*factor;
-  return (fmtNum(q)+(ing.unit?` ${ing.unit}`:"")).trim();
+  return (fmtNum(q)+(ing.unit?` ${accorderUnite(ing.unit,q)}`:"")).trim();
 }
 
 function passeNote(r){
@@ -1876,7 +1922,7 @@ function renderFacets(){
   const ferme=facetsFermees.has("Mes notes");
   html+=`<div class="facet${ferme?' closed':''}" data-facetbox="Mes notes">`+
     `<div class="facet-head"><button type="button" class="facet-name label" data-toggle="Mes notes" aria-expanded="${!ferme}">`+
-    `<span class="facet-caret">▾</span>Mes notes`+(noteFiltre?`<span class="facet-on">1</span>`:``)+
+    `<span class="facet-caret">▾</span>Favoris et étoiles`+(noteFiltre?`<span class="facet-on">1</span>`:``)+
     `</button></div><div class="chips">`+
     nf.map(([k,lbl])=>`<span class="chip ${noteFiltre===k?'on':''}" data-note-f="${k}">${lbl}<span class="n">${compte[k]}</span></span>`).join("")+
     `</div></div>`;
@@ -1904,6 +1950,13 @@ function renderFacets(){
 /* facettes repliées, mémorisées ; toutes ouvertes par défaut */
 let facetsFermees=new Set();
 try{ facetsFermees=new Set(JSON.parse(localStorage.getItem("carnet_facettes_fermees")||"[]")); }catch(e){}
+/* Une seule fois : Cuisine, Régime et Favoris et étoiles repliés, pour que la
+   colonne ne fasse plus soixante boutons de long. Ensuite, le choix de Val
+   (déplier, replier) est mémorisé et respecté. */
+try{ if(localStorage.getItem("carnet_facettes_v")!=="2"){
+  ["Cuisine","Régime","Mes notes"].forEach(f=>facetsFermees.add(f));
+  localStorage.setItem("carnet_facettes_fermees", JSON.stringify([...facetsFermees]));
+  localStorage.setItem("carnet_facettes_v","2"); } }catch(e){}
 
 function renderList(){
   navPushed=false;
@@ -2278,7 +2331,7 @@ function showPlannerResults(){
 
   const shop=buildShoppingList(recs,planPersons);
   const srcTag=e=>e.srcs.size>1?`<span class="src">×${e.srcs.size}</span>`:"";
-  const liQ=e=>`<li><span class="name">${e.item}${srcTag(e)}</span><span class="q">${fmtNum(e.qty)}${e.unit?` ${e.unit}`:""}</span></li>`;
+  const liQ=e=>`<li><span class="name">${e.item}${srcTag(e)}</span><span class="q">${fmtNum(e.qty)}${e.unit?` ${accorderUnite(e.unit,e.qty)}`:""}</span></li>`;
 
   // "À acheter" regroupé par rayon (via recettes-ingredients.js)
   const byRayon={};
@@ -2489,7 +2542,7 @@ function shoppingListClean(){
     const ry=rayonOf(item);
     (byR[ry]=byR[ry]||[]).push({item,text});
   };
-  shop.quant.forEach(e=>add(e.item, `${e.item} : ${fmtNum(e.qty)}${e.unit?` ${e.unit}`:""}`));
+  shop.quant.forEach(e=>add(e.item, `${e.item} : ${fmtNum(e.qty)}${e.unit?` ${accorderUnite(e.unit,e.qty)}`:""}`));
   shop.plain.forEach(e=>add(e.item, e.item));
   shop.season.forEach(e=>add(e.item, e.item));
   return RAYON_ORDER.filter(ry=>byR[ry]).map(ry=>
@@ -2530,15 +2583,18 @@ $("#clearBtn").onclick=()=>{selected.clear();search="";$("#search").value="";if(
 /* ---- redimensionnement de la barre latérale ---- */
 (function(){
   var wrap=document.querySelector(".wrap"), handle=$("#resizeHandle");
+  // 240 px : en dessous, « Afrique subsaharienne » ou « Planifier mes courses »
+  // passent sur deux lignes dès que le texte est un peu agrandi.
+  var SIDE_MIN=240;
   if(!wrap||!handle) return;
   try{ var saved=localStorage.getItem("carnet_sideW");
-    if(saved && /^[0-9]+px$/.test(saved)) wrap.style.setProperty("--side-w",saved); }catch(e){}
+    if(saved && /^[0-9]+px$/.test(saved)) wrap.style.setProperty("--side-w",Math.max(SIDE_MIN,parseInt(saved,10))+"px"); }catch(e){}
   var dragging=false;
   handle.addEventListener("pointerdown",function(e){ dragging=true; handle.classList.add("drag");
     try{handle.setPointerCapture(e.pointerId);}catch(_){}
     document.body.style.userSelect="none"; document.body.style.cursor="col-resize"; e.preventDefault(); });
   handle.addEventListener("pointermove",function(e){ if(!dragging) return;
-    var w=Math.max(210,Math.min(460,e.clientX)); wrap.style.setProperty("--side-w",w+"px"); });
+    var w=Math.max(SIDE_MIN,Math.min(460,e.clientX)); wrap.style.setProperty("--side-w",w+"px"); });
   function end(){ if(!dragging) return; dragging=false; handle.classList.remove("drag");
     document.body.style.userSelect=""; document.body.style.cursor="";
     try{ localStorage.setItem("carnet_sideW", getComputedStyle(wrap).getPropertyValue("--side-w").trim()); }catch(_){} }

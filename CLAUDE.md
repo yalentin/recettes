@@ -88,6 +88,16 @@ décisions de design résumées ci-dessous font foi.
   n'est jamais modifié par la page : un changement d'image est un remplacement
   dans le fichier de notes (`img` absent = pas de remplacement, `img:""` = image
   retirée volontairement), ce qui permet toujours de rétablir l'originale.
+- **Colonne latérale** (critique du 29 octobre 2026) : « Planifier mes courses »
+  est l'action principale, en accent plein. « Mes notes » et « Apparence » sont
+  des réglages discrets avec chevron, jamais en accent, même ouverts. Le bouton
+  ET/OU d'une facette est neutre (c'est un mode, pas un filtre actif). La
+  facette des étoiles s'affiche « Favoris et étoiles » (clé interne « Mes
+  notes ») pour ne pas se confondre avec le bouton. Cuisine, Régime et Favoris
+  et étoiles sont repliés au premier chargement. Largeur minimale 240 px ;
+  dans le panneau Apparence, les boutons passent à la ligne, jamais tronqués.
+- **Unités** : écrites au singulier dans les données, accordées par la page
+  (`accorderUnite`, liste fermée de noms comptables).
 - **iPhone** : sous 780 px, colonne latérale masquée en vue fiche et filtres
   repliés par défaut ; fiche organisée pour cuisiner (titre, photo, temps,
   ingrédients, étapes ; note et image après).
