@@ -86,10 +86,14 @@ dans « Mes notes » et gardée dans le `localStorage` de son navigateur
 - Notes : lues par l'API pour Val (sans attendre Pages), par `fetch` de la copie
   publiée pour les visiteurs. Fusion par horodatage `t`, entrée par entrée ; une
   entrée remise à zéro est gardée (« pierre tombale ») pour ne pas ressusciter.
-- Envoi regroupé 15 s après le dernier clic, ou au passage de l'onglet en
+- Envoi regroupé 10 s après le dernier clic, ou au passage de l'onglet en
   arrière-plan ; tampon `carnet_notes` + drapeau `carnet_notes_attente` dans
   `localStorage` pour ne rien perdre ; conflit 409/422 → relire, refusionner,
   réessayer.
+- Retour visuel : pastille d'état fixe en bas (`afficherEtat`), aperçu voilé de
+  la photo à sa place pendant l'envoi (`PHOTO_EN_COURS`). Toute nouvelle écriture
+  vers GitHub doit passer par ces deux mécanismes : Val a signalé qu'une
+  opération sans retour visible donne l'impression que rien ne se passe.
 - Commits faits avec l'auteur `GH_AUTEUR` (adresse noreply). Ne jamais envoyer la
   clé ailleurs qu'à `api.github.com`, ne jamais l'écrire dans le dépôt.
 - Les valeurs `img` admises : `""`, `images/<nom>` ou une adresse http(s) sans

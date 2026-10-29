@@ -1033,6 +1033,42 @@
     .wbtn::after{content:"";position:absolute;inset:-13px;}
     .back,.imgbtn,.appr-btn{min-height:44px;}
   }
+  /* PASTILLE D'ÉTAT — ce que la page est en train d'enregistrer sur GitHub.
+     Neutre et identique dans les trois styles : c'est un message système,
+     pas un élément du carnet. Fixée en bas, au-dessus de la barre d'accueil
+     de l'iPhone. */
+  .etat-envoi{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:1000;
+    transform:translate(-50%,14px);opacity:0;pointer-events:none;
+    display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;min-height:44px;box-sizing:border-box;
+    max-width:min(560px,calc(100vw - 32px));border-radius:22px;
+    font-family:var(--font-ui);font-size:14px;font-weight:600;line-height:1.3;letter-spacing:0;
+    background:rgba(28,28,30,.92);color:#fff;border:1px solid rgba(255,255,255,.12);
+    -webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);
+    box-shadow:0 10px 30px rgba(0,0,0,.28);transition:opacity .22s ease,transform .22s ease;}
+  .etat-envoi.visible{opacity:1;transform:translate(-50%,0);pointer-events:auto;}
+  .etat-envoi[data-etat="erreur"]{background:rgba(179,38,30,.96);align-items:flex-start;flex-wrap:wrap;
+    width:min(560px,calc(100vw - 32px));padding:12px 12px 10px 14px;border-radius:18px;font-weight:500;}
+  .etat-envoi .ee-texte{flex:1 1 auto;}
+  .etat-envoi[data-etat="erreur"] .ee-texte{flex-basis:calc(100% - 28px);}
+  .etat-envoi .ee-actions{display:flex;gap:8px;margin-left:auto;}
+  .etat-envoi .ee-signe{flex:none;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .etat-envoi button{flex:none;font:inherit;font-size:13px;color:#fff;background:rgba(255,255,255,.18);
+    border:none;border-radius:14px;padding:6px 11px;cursor:pointer;}
+  .etat-envoi button:hover{background:rgba(255,255,255,.28);}
+  .rond-envoi{display:block;width:16px;height:16px;border-radius:50%;box-sizing:border-box;
+    border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;animation:rond-envoi .8s linear infinite;}
+  .point-attente{display:block;width:9px;height:9px;border-radius:50%;background:#fff;animation:point-attente 1.4s ease-in-out infinite;}
+  @keyframes rond-envoi{to{transform:rotate(360deg);}}
+  @keyframes point-attente{0%,100%{opacity:.35;}50%{opacity:1;}}
+  /* photo en cours d'envoi : aperçu voilé à sa place sur la fiche */
+  .d-hero.en-envoi img{filter:brightness(.55) saturate(.85);}
+  .d-hero .voile-envoi{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    color:#fff;font-family:var(--font-ui);font-size:15px;font-weight:600;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.45);}
+  .d-hero .voile-envoi .rond-envoi{width:30px;height:30px;border-width:3px;}
+  @media(prefers-reduced-motion:reduce){
+    .etat-envoi{transition:opacity .2s;transform:translate(-50%,0);}
+    .rond-envoi{animation-duration:2.4s;} .point-attente{animation:none;opacity:1;}
+  }
   /* LECTURE SEULE (visiteurs, ou navigateur sans clé GitHub) : les étoiles
      déjà posées restent visibles mais inertes, rien d'autre ne s'affiche. */
   html:not([data-proprio]) .card:not([data-noted]) .note-row,
@@ -1967,8 +2003,12 @@ function openRecipe(id, origin){
   // Si l'URL externe ne répond plus, on retire AUSSI le badge de provenance :
   // « illustration web » posé sur un cartouche vide ne désigne plus rien.
   const im = imageDe(r);
+  const enEnvoi = PHOTO_EN_COURS && PHOTO_EN_COURS.id===r.id && PHOTO_EN_COURS.url;
+  if(enEnvoi){ im.src=PHOTO_EN_COURS.url; im.web=false; }
   // Sans photo, la fiche n'affiche aucun bandeau : le titre est juste au-dessus.
-  const hero = im.src
+  const hero = enEnvoi
+    ? `<img src="${im.src}" alt=""><div class="voile-envoi" aria-hidden="true"><span class="rond-envoi"></span>${PHOTO_EN_COURS.etape}</div>`
+    : im.src
     ? `<img src="${im.src}" alt="" onerror="const h=this.closest('.d-hero');const s=document.querySelector('.img-src');if(s)s.textContent='image d\\'origine introuvable';if(h)h.remove();">`
     : "";
   const heroWeb = (im.src && im.web) ? `<span class="webbadge" title="Image trouvée en ligne — illustration, pas forcément la recette exacte">illustration web</span>` : "";
@@ -1998,7 +2038,7 @@ function openRecipe(id, origin){
     <button class="back" onclick="goList()">← Retour</button>
     <div class="d-tags">${(r.tags||[]).map(t=>`<span class="d-tag">${t}</span>`).join("")}</div>
     <h1 class="d-title">${r.title}</h1>
-    ${hero?`<div class="d-hero">${hero}${heroWeb}</div>`:""}
+    ${hero?`<div class="d-hero${enEnvoi?' en-envoi':''}">${hero}${enEnvoi?'':heroWeb}</div>`:""}
     <div class="d-meta">
       ${metaItem("Préparation",fmtTime(r.prep))}
       ${metaItem("Cuisson",fmtTime(r.cook))}
@@ -2529,9 +2569,13 @@ $("#clearBtn").onclick=()=>{selected.clear();search="";$("#search").value="";if(
    Chaque écriture est un enregistrement (commit) sur la branche main, puis
    GitHub Pages republie le site. Pour ne pas multiplier les republications
    (GitHub en tolère une dizaine par heure), les clics sont regroupés :
-   l'envoi part 15 s après le dernier, ou dès qu'on quitte l'onglet.
+   l'envoi part 10 s après le dernier, ou dès qu'on quitte l'onglet.
    ===================================================================== */
-const IMG_MAX_PX = 1400, IMG_QUALITE = .82, ENVOI_DELAI = 15000;
+const IMG_MAX_PX = 1400, IMG_QUALITE = .82, ENVOI_DELAI = 10000;
+/* photo en cours de préparation / d'envoi : {id, url, etape} ou null */
+let PHOTO_EN_COURS = null;
+/* message affiché quand le prochain envoi réussit (« Photo enregistrée ») */
+let MESSAGE_OK = "";
 
 function erreurGH(message, code){ const e=new Error(message); e.code=code||""; return e; }
 function cheminAPI(chemin){ return chemin.split("/").map(encodeURIComponent).join("/"); }
@@ -2554,8 +2598,8 @@ async function ghApi(chemin, opts){
     throw erreurGH("Pas de connexion à GitHub (réseau coupé ?). Rien n'est perdu : l'envoi reprendra.", "reseau");
   }
   if(r.status===401)
-    throw erreurGH("GitHub refuse la clé : elle a expiré ou a été révoquée. Crée-en une nouvelle et colle-la ici. "+
-                   "Tes modifications restent gardées dans ce navigateur en attendant.", "cle");
+    throw erreurGH("GitHub refuse la clé : elle a expiré ou a été révoquée. Crée-en une nouvelle et colle-la dans « Mes notes ». "+
+                   "Tes modifications sont gardées dans ce navigateur en attendant.", "cle");
   if(r.status===403 && r.headers.get("x-ratelimit-remaining")==="0")
     throw erreurGH("Trop de requêtes vers GitHub pour l'instant. Réessaie dans quelques minutes.", "quota");
   if(r.status===403)
@@ -2747,10 +2791,21 @@ async function poserPhoto(id){
   if(!PROPRIO){ direImg("Connecte d'abord ta clé GitHub dans « Mes notes ».", true); return; }
   let fichier;
   try{ fichier = await choisirFichierImage(); }catch(e){ return; }
-  direImg("Traitement de l'image…");
+  // Retour visible DÈS le choix du fichier : la pastille, puis l'aperçu voilé
+  // à la place de l'image, vers lequel on remonte (sur iPhone, le panneau
+  // image est tout en bas de la fiche et la photo tout en haut).
+  PHOTO_EN_COURS={id, url:null, etape:"Préparation de la photo…"};
+  afficherEtat("envoi", "Préparation de la photo…");
   let blob;
-  try{ blob = await redimensionner(fichier); }catch(e){ direImg(e.message,true); return; }
-  direImg("Envoi sur GitHub…");
+  try{ blob = await redimensionner(fichier); }
+  catch(e){ PHOTO_EN_COURS=null; direImg(e.message,true); afficherEtat("erreur", e.message); return; }
+  PHOTO_EN_COURS={id, url:URL.createObjectURL(blob), etape:"Envoi de la photo…"};
+  afficherEtat("envoi", "Envoi de la photo sur GitHub…");
+  if(currentId===id){
+    openRecipe(id, detailOrigin);
+    const h=document.querySelector(".d-hero");
+    if(h) h.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center"});
+  }
   const r0=RECETTES.find(x=>x.id===id);
   const nom=id+"-"+Date.now().toString(36)+".jpg", chemin="images/"+nom;
   try{
@@ -2758,13 +2813,19 @@ async function poserPhoto(id){
       message: "Photo : "+(r0?r0.title:id), content: await blobVersB64(blob),
       branch: GH.branch, committer: GH_AUTEUR, author: GH_AUTEUR }});
     if(!r.ok) throw erreurGH("GitHub a refusé la photo ("+r.status+").");
-  }catch(e){ direImg("Photo non enregistrée : "+e.message, true); return; }
-  IMAGES_SESSION[chemin]=URL.createObjectURL(blob);
+  }catch(e){
+    const url=PHOTO_EN_COURS.url; PHOTO_EN_COURS=null; URL.revokeObjectURL(url);
+    if(currentId===id) openRecipe(id, detailOrigin);
+    afficherEtat("erreur", "Photo non enregistrée : "+e.message, {reessayer:()=>poserPhoto(id)});
+    return;
+  }
+  IMAGES_SESSION[chemin]=PHOTO_EN_COURS.url;
+  PHOTO_EN_COURS=null;
   const ancienne=(NOTES[id]||{}).img;
+  MESSAGE_OK="Photo enregistrée ("+Math.round(blob.size/1024)+" Ko)";
   appliquerImage(id, chemin, 0);
   envoyerNotes();                       // le remplacement part tout de suite
   supprimerAnciennePhoto(id, ancienne, nom);
-  direImg("Photo enregistrée ("+Math.round(blob.size/1024)+" Ko). Elle sera visible pour tout le monde d'ici une à deux minutes.");
 }
 /* retire la photo que la page avait elle-même envoyée pour cette recette ;
    jamais une image posée par le skill d'ingestion (nom sans suffixe) */
@@ -2811,7 +2872,48 @@ function basculerPanneauImage(){
 /* =====================================================================
    PANNEAU « MES NOTES » — état de l'enregistrement, connexion de la clé
    ===================================================================== */
+/* --- pastille d'état -------------------------------------------------- */
+let PASTILLE_MINUTEUR=null, ETAT_PRECEDENT="ok";
+function pastille(){
+  let el=document.getElementById("etatEnvoi");
+  if(!el){
+    el=document.createElement("div"); el.id="etatEnvoi"; el.className="etat-envoi";
+    el.setAttribute("role","status"); el.setAttribute("aria-live","polite");
+    document.body.appendChild(el);
+  }
+  return el;
+}
+/* etat : attente | envoi | ok | erreur ; opts.reessayer : action du bouton */
+function afficherEtat(etat, texte, opts){
+  opts=opts||{};
+  const el=pastille();
+  clearTimeout(PASTILLE_MINUTEUR);
+  const signe = etat==="envoi" ? '<span class="rond-envoi"></span>'
+              : etat==="attente" ? '<span class="point-attente"></span>'
+              : etat==="ok" ? '✓' : '⚠';
+  el.dataset.etat=etat;
+  el.innerHTML='<span class="ee-signe" aria-hidden="true">'+signe+'</span><span class="ee-texte"></span>'+
+    (etat==="erreur" ? '<span class="ee-actions">'+(opts.reessayer?'<button type="button" class="ee-re">Réessayer</button>':'')+
+                       '<button type="button" class="ee-x">Fermer</button></span>' : '');
+  el.querySelector(".ee-texte").textContent=texte;
+  const re=el.querySelector(".ee-re"); if(re) re.onclick=()=>{ cacherEtat(); opts.reessayer(); };
+  const x=el.querySelector(".ee-x"); if(x) x.onclick=cacherEtat;
+  el.classList.add("visible");
+  if(etat==="ok") PASTILLE_MINUTEUR=setTimeout(cacherEtat, 2600);
+}
+function cacherEtat(){ clearTimeout(PASTILLE_MINUTEUR); const el=document.getElementById("etatEnvoi"); if(el) el.classList.remove("visible"); }
+/* la pastille suit l'état des notes, sauf pendant la préparation d'une photo */
+function majPastilleNotes(){
+  const e=ENVOI.etat, avant=ETAT_PRECEDENT; ETAT_PRECEDENT=e;
+  if(!PROPRIO) return;
+  if(e==="erreur"){ afficherEtat("erreur", ENVOI.erreur, {reessayer:()=>envoyerNotes()}); MESSAGE_OK=""; return; }
+  if(PHOTO_EN_COURS) return;
+  if(e==="attente") afficherEtat("attente", "Modifications en attente d'envoi…");
+  else if(e==="envoi") afficherEtat("envoi", MESSAGE_OK ? "Enregistrement de la photo…" : "Enregistrement sur GitHub…");
+  else if(e==="ok" && (avant==="envoi" || avant==="attente")){ afficherEtat("ok", MESSAGE_OK || "Enregistré sur GitHub"); MESSAGE_OK=""; }
+}
 function majIndicateurNotes(){
+  majPastilleNotes();
   const b=document.getElementById("notesBtn");
   if(!b) return;
   b.textContent = !PROPRIO ? "Mes notes"

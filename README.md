@@ -28,14 +28,17 @@ filtres) et le tri **Mieux notées** permettent de les retrouver.
 une fois par navigateur (ordinateur, iPhone…).
 
 Ensuite, plus rien à faire. Les étoiles, les cœurs et les photos s'enregistrent
-sur GitHub une quinzaine de secondes après le dernier clic, ou dès que tu quittes
-l'onglet. Le bouton affiche « Mes notes (enregistrement…) » pendant ce temps.
-S'il affiche « ⚠ non enregistré », ouvre-le : il dit pourquoi. Rien n'est perdu,
-la modification attend dans le navigateur et repart à la visite suivante.
+sur GitHub une dizaine de secondes après le dernier clic, ou dès que tu quittes
+l'onglet. Une pastille en bas de l'écran suit l'opération : « Modifications en
+attente d'envoi… », « Enregistrement sur GitHub… », puis « ✓ Enregistré ». En cas
+d'échec, elle reste affichée en rouge, dit pourquoi et propose « Réessayer ».
+Rien n'est perdu : la modification attend dans le navigateur et repart à la
+visite suivante.
 
 **Photos** : sur la fiche d'une recette, en bas, **Image…** permet de choisir une
 photo (ordinateur ou iPhone), de coller une adresse web, de retirer l'image ou de
-rétablir celle d'origine. La photo est réduite à 1400 px avant l'envoi. Sur
+rétablir celle d'origine. La photo est réduite à 1400 px avant l'envoi ; pendant
+l'envoi, elle s'affiche voilée à sa place sur la fiche. Sur
 l'ordinateur, une photo d'iPhone au format HEIC ne passe pas : l'iPhone doit être
 réglé sur « Le plus compatible », ou la photo convertie en JPEG.
 
