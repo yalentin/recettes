@@ -168,6 +168,11 @@ formalisation.** En résumé, chaque recette est un objet JavaScript ajouté à
 `steps`, `notes`. Le champ `item` doit être un **nom canonique** du registre
 d'ingrédients (§6 bis) ; la préparation éventuelle va dans `prep`, pas dans `item`.
 
+**Texte simple uniquement.** Aucun champ (titre, étapes, notes, ingrédients)
+ne doit contenir de balise HTML ni les caractères `<` et `>` : la page les
+affiche tels quels et détient une clé d'écriture sur le dépôt. Si une source en
+contient, les retirer (ou écrire « inférieur à », « supérieur à »).
+
 ## 5. Quantités et drapeau d'assaisonnement (`warn`)
 
 La visionneuse met les quantités à l'échelle linéairement. Pour les

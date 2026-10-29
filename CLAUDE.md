@@ -12,7 +12,7 @@ code commenté, messages de commit, journaux, réponses à Val.
 | `recettes-data.js` | `window.FACETTES`, `FACETTES_MODE`, `RECETTES` | Le skill d'ingestion (ajout en fin de `RECETTES`) |
 | `recettes-ingredients.js` | Registre des ingrédients (nom canonique, alias, rayon) | Le skill d'ingestion |
 | `recettes-tags.md` | Tags approuvés / proposés | Le skill ; Val seul approuve |
-| `recettes-notes.js` (bientôt `recettes-notes.json`) | Étoiles, favoris, remplacements d'image | **La page**, pour Val |
+| `recettes-notes.json` | Étoiles, favoris, remplacements d'image (une recette par ligne) | **La page**, via l'API GitHub |
 | `images/` | Photos locales | Le skill (photo du plat fini) et la page |
 | `journal/` | Un compte rendu par ingestion, ALERTES en tête | Le skill |
 | `.claude/skills/recette-ingestion/` | Le skill d'ingestion | Claude, sur demande |
@@ -76,13 +76,28 @@ Historique détaillé : anciens docs du projet claude.ai « Recettes »
   repliés par défaut ; fiche organisée pour cuisiner (titre, photo, temps,
   ingrédients, étapes ; note et image après).
 
-## En cours
+## Enregistrement depuis la page (depuis octobre 2026)
 
-Migration vers GitHub (octobre 2026). Étape suivante : la page enregistre
-elle-même étoiles, favoris et photos sur GitHub via l'API (jeton personnel limité
-à ce dépôt, gardé dans le navigateur de Val ; visiteurs en lecture seule). Tant que
-ce n'est pas fait, le code de `index.html` décrit encore l'ancien fonctionnement
-local (export manuel, accès au dossier via Brave) et le README aussi.
+La page écrit elle-même `recettes-notes.json` et `images/` par l'API GitHub
+(Contents API), avec une clé « fine-grained » limitée à ce dépôt, collée par Val
+dans « Mes notes » et gardée dans le `localStorage` de son navigateur
+(`carnet_gh_cle`). Sans clé : lecture seule (`html:not([data-proprio])`).
 
-Idées non tranchées : écran qui reste allumé en cuisine, cocher ingrédients et
-étapes, minuteurs tirés des étapes.
+- Notes : lues par l'API pour Val (sans attendre Pages), par `fetch` de la copie
+  publiée pour les visiteurs. Fusion par horodatage `t`, entrée par entrée ; une
+  entrée remise à zéro est gardée (« pierre tombale ») pour ne pas ressusciter.
+- Envoi regroupé 15 s après le dernier clic, ou au passage de l'onglet en
+  arrière-plan ; tampon `carnet_notes` + drapeau `carnet_notes_attente` dans
+  `localStorage` pour ne rien perdre ; conflit 409/422 → relire, refusionner,
+  réessayer.
+- Commits faits avec l'auteur `GH_AUTEUR` (adresse noreply). Ne jamais envoyer la
+  clé ailleurs qu'à `api.github.com`, ne jamais l'écrire dans le dépôt.
+- Les valeurs `img` admises : `""`, `images/<nom>` ou une adresse http(s) sans
+  guillemets ni chevrons (`normaliserNote`). Les champs de `recettes-data.js` sont
+  du texte simple : ne pas y introduire de HTML, la page les insère tels quels et
+  détient désormais une clé.
+
+## Idées non tranchées
+
+Écran qui reste allumé en cuisine, cocher ingrédients et étapes, minuteurs tirés
+des étapes.

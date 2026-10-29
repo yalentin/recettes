@@ -1018,9 +1018,17 @@
     .wbtn{position:relative;}
     .wbtn::after{content:"";position:absolute;inset:-13px;}
     .back,.imgbtn,.appr-btn{min-height:44px;}
-    /* le téléphone ne sert qu'à consulter : la gestion d'image n'y a pas de sens */
-    .d-fin .d-imgbar,.d-fin .img-panel{display:none;}
   }
+  /* LECTURE SEULE (visiteurs, ou navigateur sans clé GitHub) : les étoiles
+     déjà posées restent visibles mais inertes, rien d'autre ne s'affiche. */
+  html:not([data-proprio]) .card:not([data-noted]) .note-row,
+  html:not([data-proprio]) .d-note:not([data-noted]),
+  html:not([data-proprio]) .note-clear,
+  html:not([data-proprio]) .d-fin .d-imgbar,
+  html:not([data-proprio]) .d-fin .img-panel{display:none;}
+  html:not([data-proprio]) .note-row button{pointer-events:none;cursor:default;}
+  html:not([data-proprio]) .note-row .st:not(.on),
+  html:not([data-proprio]) .note-row .wish[aria-pressed="false"]{display:none;}
   /* la base n'est rappelée que lorsqu'on s'en écarte (elle doublait le sélecteur) */
   .serve-base{margin:-8px 0 14px;font-family:var(--font-ui);font-size:12.5px;color:var(--ink-soft);}
   /* --- 3 octobre (2) : vignette-titre, planificateur en action secondaire --- */
@@ -1449,11 +1457,8 @@
 </div>
 
 
-<!-- Notes personnelles (étoiles + favoris) déposées sur le disque par le
-     bouton « Mes notes › Enregistrer sur le disque ». Le fichier est FACULTATIF :
-     s'il manque, le navigateur signale un 404 dans la console et le carnet
-     fonctionne normalement sur les seules notes du navigateur. -->
-<script src="recettes-notes.js"></script>
+<!-- Les notes personnelles (recettes-notes.json) ne sont pas chargées ici :
+     la page les lit elle-même, voir « NOTES PERSONNELLES » plus bas. -->
 <script src="recettes-ingredients.js"></script>
 <script src="recettes-data.js"></script>
 
@@ -1479,67 +1484,90 @@ const RAYON_OF = {}; INGREDIENTS.forEach(x=>{ RAYON_OF[x.name]=x.rayon; });
    Cinq étoiles disent « c'était très bon » ; le cœur dit « celle-là, je la
    refais ». Ce ne sont pas les mêmes recettes, d'où deux champs.
 
-   OÙ VIVENT LES NOTES — et pourquoi deux endroits
-   -----------------------------------------------
-   Une page ouverte en file:// ne peut PAS écrire dans son propre dossier :
-   aucun navigateur ne l'autorise. D'où deux couches :
+   OÙ VIVENT LES NOTES (depuis le passage à GitHub, octobre 2026)
+   --------------------------------------------------------------
+   Dans recettes-notes.json, à la racine du dépôt GitHub. C'est la seule
+   copie qui fait foi.
+     · Un VISITEUR lit la copie publiée par GitHub Pages : lecture seule,
+       aucun contrôle de notation n'est actif.
+     · VAL (le « propriétaire ») a collé une fois, dans ce navigateur, une clé
+       GitHub limitée à ce dépôt. La page lit alors les notes directement
+       par l'API de GitHub (sans attendre la republication du site) et les
+       y réécrit elle-même, quelques secondes après le dernier clic : les
+       clics rapprochés partent en un seul enregistrement.
+     · localStorage (clé carnet_notes) ne sert plus que de tampon : il garde
+       les modifications pas encore envoyées, pour qu'une coupure de réseau
+       ou une fermeture d'onglet ne fasse rien perdre. L'envoi reprend à la
+       visite suivante.
 
-     1. localStorage (clé carnet_notes) — écriture immédiate à chaque clic.
-        Vit dans le profil du navigateur. Survit à la fermeture du fichier,
-        au redémarrage de la machine. Ne survit PAS à un nettoyage des
-        données de navigation, et ne suit pas sur un autre navigateur.
-     2. recettes-notes.js — l'export sur disque, déclenché à la main.
-        Rechargé au démarrage comme socle. C'est la copie durable, celle
-        qu'on sauvegarde avec le reste du dossier et que l'agent peut lire.
-
-   FUSION : chaque entrée porte son horodatage t. Au chargement, disque et
-   navigateur sont fusionnés recette par recette, la plus récente gagne.
-   Un export ancien ne peut donc pas écraser une note récente, ni l'inverse.
+   FUSION : chaque entrée porte son horodatage t. Copie GitHub et tampon local
+   sont fusionnés recette par recette, la plus récente gagne. Une entrée
+   remise à zéro (ni note, ni favori, ni image) est GARDÉE avec son
+   horodatage : sans cette « pierre tombale », une ancienne note encore
+   présente sur GitHub ressusciterait à la fusion suivante.
    ===================================================================== */
-const NOTES_KEY="carnet_notes", NOTES_EXPORT_KEY="carnet_notes_export_t";
+const NOTES_KEY="carnet_notes", NOTES_ATTENTE_KEY="carnet_notes_attente";
 let NOTES={};
 
-function notesLire(){
-  const disque=(window.NOTES_DISQUE && typeof window.NOTES_DISQUE==="object") ? window.NOTES_DISQUE : {};
-  let local={};
-  try{ local=JSON.parse(localStorage.getItem(NOTES_KEY)||"{}")||{}; }catch(e){ local={}; }
-  const out={}, ids=new Set(Object.keys(disque).concat(Object.keys(local)));
+/* Le dépôt et l'identité sous laquelle la page enregistre. L'adresse est
+   l'adresse « noreply » de GitHub : la vraie adresse de Val n'apparaît
+   jamais dans l'historique public. */
+const GH={owner:"yalentin", repo:"recettes", branch:"main", notes:"recettes-notes.json"};
+const GH_AUTEUR={name:"yalentin", email:"329976600+yalentin@users.noreply.github.com"};
+const GH_CLE_KEY="carnet_gh_cle";
+function ghCle(){ try{ return localStorage.getItem(GH_CLE_KEY)||""; }catch(e){ return ""; } }
+/* PROPRIO : ce navigateur détient la clé. Recalculé à la connexion et à la
+   déconnexion ; l'attribut html[data-proprio] pilote l'affichage. */
+let PROPRIO = !!ghCle();
+document.documentElement.toggleAttribute("data-proprio", PROPRIO);
+/* état de l'envoi, lu par le panneau « Mes notes » */
+const ENVOI={etat:"ok", erreur:"", minuteur:null, enCours:false, dernier:0};
+/* photos envoyées pendant cette visite : affichées depuis la mémoire tant que
+   GitHub Pages n'a pas encore republié le site (une à deux minutes) */
+const IMAGES_SESSION={};
+
+function normaliserNote(n){
+  if(!n || typeof n!=="object") return null;
+  const o={r:Math.max(0,Math.min(5,+n.r||0)), w:n.w?1:0, t:+n.t||0};
+  // img absent = pas de remplacement ; img:"" = image retirée volontairement
+  if(n.img!==undefined){
+    const v=String(n.img);
+    // seules deux formes sont admises : un chemin images/… du dépôt, ou une
+    // adresse http(s). Tout le reste (data:, javascript:…) est écarté.
+    if(v==="" || /^images\/[\w.\-]+$/.test(v) || /^https?:\/\/[^\s"'<>`]+$/i.test(v)){ o.img=v; o.imgWeb=n.imgWeb?1:0; }
+  }
+  return o;
+}
+function fusionNotes(a, b){
+  const out={}, ids=new Set(Object.keys(a||{}).concat(Object.keys(b||{})));
   ids.forEach(id=>{
-    const a=disque[id], b=local[id];
-    const n = !a ? b : !b ? a : ((b.t||0)>=(a.t||0) ? b : a);
-    if(n && (n.r || n.w || n.img!==undefined)){
-      out[id]={r:+n.r||0, w:n.w?1:0, t:+n.t||0};
-      // img absent = pas de remplacement ; img:"" = image retirée volontairement
-      if(n.img!==undefined){ out[id].img=String(n.img); out[id].imgWeb=n.imgWeb?1:0; }
-    }
+    const x=normaliserNote((a||{})[id]), y=normaliserNote((b||{})[id]);
+    const n = !x ? y : !y ? x : (y.t>=x.t ? y : x);
+    if(n) out[id]=n;
   });
-  /* Purge des photos encapsulées en « data: ». Une version antérieure
-     pouvait enregistrer une photo À L'INTÉRIEUR du fichier de notes quand
-     l'accès au dossier échouait. Ce repli est supprimé : il éparpillait les
-     images entre deux endroits, ce qui coûte plus cher que le service rendu.
-     Les entrées de ce type sont donc effacées au chargement — la note et le
-     favori de la recette, eux, sont conservés. */
-  Object.keys(out).forEach(id=>{
-    const v=out[id].img;
-    if(typeof v==="string" && v.slice(0,5)==="data:"){
-      delete out[id].img; delete out[id].imgWeb;
-      if(!out[id].r && !out[id].w) delete out[id];
-    }
-  });
-  NOTES=out;
-  notesEcrire();
+  return out;
+}
+function noteVisible(n){ return !!(n && (n.r || n.w || n.img!==undefined)); }
+/* Chargement immédiat, avant le premier rendu : le tampon local pour Val,
+   rien pour un visiteur. La copie GitHub arrive juste après (chargerNotes). */
+function notesLire(){
+  let local={};
+  if(PROPRIO){ try{ local=JSON.parse(localStorage.getItem(NOTES_KEY)||"{}")||{}; }catch(e){ local={}; } }
+  NOTES=fusionNotes({}, local);
 }
 function notesEcrire(){
+  if(!PROPRIO) return;
   try{ localStorage.setItem(NOTES_KEY, JSON.stringify(NOTES)); }catch(e){}
 }
 function noteDe(id){ return NOTES[id] || {r:0,w:0,t:0}; }
 function noterRecette(id, champ, valeur){
+  if(!PROPRIO) return;
   const n=Object.assign({r:0,w:0,t:0}, NOTES[id]);
   if(valeur===undefined) delete n[champ]; else n[champ]=valeur;
   n.t=Date.now();
-  if(!n.r && !n.w && n.img===undefined) delete NOTES[id]; else NOTES[id]=n;
+  NOTES[id]=n;                       // gardée même vide : voir « pierre tombale »
   notesEcrire();
-  majIndicateurNotes();
+  planifierEnvoi();
 }
 
 /* =====================================================================
@@ -1574,13 +1602,8 @@ function ajusterTitres(){
 })();
 function imageDe(r){
   const n=NOTES[r.id];
-  if(n && n.img!==undefined) return {src:n.img, web:!!n.imgWeb, perso:true};
+  if(n && n.img!==undefined) return {src:IMAGES_SESSION[n.img]||n.img, web:!!n.imgWeb, perso:true, chemin:n.img};
   return {src:r.image||"", web:!!r.imageWeb, perso:false};
-}
-/* nombre de notes postérieures au dernier export sur disque */
-function notesNonExportees(){
-  let ts=0; try{ ts=+localStorage.getItem(NOTES_EXPORT_KEY)||0; }catch(e){}
-  return Object.values(NOTES).filter(n=>(n.t||0)>ts).length;
 }
 
 /* --- rendu des contrôles ------------------------------------------------
@@ -1937,9 +1960,8 @@ function openRecipe(id, origin){
   const heroWeb = (im.src && im.web) ? `<span class="webbadge" title="Image trouvée en ligne — illustration, pas forcément la recette exacte">illustration web</span>` : "";
   const origine = im.perso
     ? (im.web ? "adresse web que tu as choisie"
-              : (im.src ? "ta photo : "+im.src : "image retirée"))
+              : (im.src ? "ta photo : "+(im.chemin||im.src) : "image retirée"))
     : (r.image ? "image d'origine de la recette" : "aucune image");
-  const accesOk = (etatAcces()==="accorde");
   const barreImage = `
     <div class="d-imgbar">
       <button type="button" class="imgbtn" id="imgBtn" aria-expanded="false" aria-controls="imgPanel">${im.src?"Image…":"Ajouter une image…"}</button>
@@ -1947,7 +1969,7 @@ function openRecipe(id, origin){
     </div>
     <div class="img-panel" id="imgPanel" hidden>
       <div class="img-row">
-        <button type="button" class="imgbtn" id="imgChoisir">Choisir une photo sur l'ordinateur…</button>
+        <button type="button" class="imgbtn" id="imgChoisir">Choisir une photo…</button>
         ${im.src?`<button type="button" class="imgbtn" id="imgRetirer">Retirer l'image</button>`:``}
         ${im.perso?`<button type="button" class="imgbtn" id="imgRetablir">Rétablir l'image d'origine</button>`:``}
       </div>
@@ -1956,8 +1978,7 @@ function openRecipe(id, origin){
         <button type="button" class="imgbtn" id="imgUrlOk">Utiliser</button>
       </div>
       <p id="imgEtat"></p>
-      ${accesOk?``:`<div class="img-row"><button type="button" class="imgbtn" id="imgAutoriser">Autoriser l'accès au dossier du carnet…</button></div>`}
-      <p>La photo est redimensionnée à ${IMG_MAX_PX} px et écrite dans <b>images/</b>. La recette n'est pas modifiée : le remplacement vit dans tes notes, « rétablir » ramène l'image d'origine.</p>
+      <p>La photo est redimensionnée à ${IMG_MAX_PX} px et enregistrée sur GitHub dans <b>images/</b>. La recette n'est pas modifiée : le remplacement vit dans tes notes, « rétablir » ramène l'image d'origine.</p>
     </div>`;
   d.innerHTML=`
     <button class="back" onclick="goList()">← Retour</button>
@@ -1989,7 +2010,7 @@ function openRecipe(id, origin){
     <!-- Ce qui ne sert pas pendant qu'on cuisine vient après la recette :
          on note un plat une fois qu'on l'a fait, et l'image se gère au calme. -->
     <div class="d-fin">
-      <div class="d-note">
+      <div class="d-note"${(noteDe(r.id).r||noteDe(r.id).w)?' data-noted':''}>
         <span class="note-lbl">Ma note</span>${noteRowHtml(r.id)}
       </div>
       ${barreImage}
@@ -2001,7 +2022,6 @@ function openRecipe(id, origin){
   brancher("imgRetirer", ()=>retirerImage(id));
   brancher("imgRetablir", ()=>retablirImage(id));
   brancher("imgUrlOk", ()=>poserUrlImage(id));
-  brancher("imgAutoriser", ()=>autoriserDossier(id));
   animateView($("#detailView"));
 }
 function goList(){ if(detailOrigin==="planner"){ showPlannerResults(); } else { renderList(); window.scrollTo(0,listScroll); animateView($("#listView")); } }
@@ -2479,128 +2499,213 @@ $("#clearBtn").onclick=()=>{selected.clear();search="";$("#search").value="";if(
 })();
 
 /* =====================================================================
-   GESTION DES IMAGES DEPUIS LA PAGE
+   ENREGISTREMENT SUR GITHUB — notes et photos
    ---------------------------------------------------------------------
-   Objectif : un bouton qui ouvre le sélecteur de fichiers de GNOME, et une
-   photo qui atterrit comme VRAI FICHIER dans images/ — pas encapsulée dans
-   un fichier de données. C'est ce qui permet de la téléverser telle quelle
-   vers le dépôt de consultation.
+   La page parle directement à l'API de GitHub avec la clé que Val a collée
+   dans « Mes notes » (clé « fine-grained » limitée au dépôt yalentin/recettes,
+   droit « Contents : lecture et écriture » seulement). La clé ne quitte
+   jamais ce navigateur : elle n'est envoyée qu'à api.github.com.
 
-   Le mécanisme est l'API File System Access : showDirectoryPicker() demande
-   UNE FOIS l'accès en écriture au dossier du carnet, et la poignée obtenue
-   est conservée dans IndexedDB. Aux visites suivantes le navigateur ne
-   redemande qu'une confirmation. Vérifié disponible en file:// (contexte
-   sécurisé) sur moteur Chromium — donc Brave.
+   Deux propriétaires, comme avant : la page n'écrit QUE recettes-notes.json
+   et des fichiers dans images/. recettes-data.js appartient au skill
+   d'ingestion et n'est jamais touché ici. Un changement d'image reste un
+   REMPLACEMENT inscrit dans les notes, ce qui garde « rétablir l'image
+   d'origine » toujours possible.
 
-   REPLI : si le navigateur refuse l'accès au dossier, ou si l'utilisateur
-   le refuse, la photo n'est pas perdue — elle est enregistrée redimensionnée
-   dans le fichier de notes sous forme de donnée encapsulée. Ça marche
-   partout, y compris Firefox, au prix d'un fichier de notes plus lourd.
-
-   Les photos sont TOUJOURS redimensionnées et réencodées avant écriture :
-   une photo d'iPhone brute pèse 3 à 5 Mo, ce qui n'a aucun intérêt pour une
-   vignette et alourdirait le dépôt pour toujours.
+   Chaque écriture est un enregistrement (commit) sur la branche main, puis
+   GitHub Pages republie le site. Pour ne pas multiplier les republications
+   (GitHub en tolère une dizaine par heure), les clics sont regroupés :
+   l'envoi part 15 s après le dernier, ou dès qu'on quitte l'onglet.
    ===================================================================== */
-const IMG_MAX_PX = 1400, IMG_QUALITE = .82;
+const IMG_MAX_PX = 1400, IMG_QUALITE = .82, ENVOI_DELAI = 15000;
 
-/* --- poignée de dossier, conservée entre les sessions ------------------ */
-function idbOuvrir(){
+function erreurGH(message, code){ const e=new Error(message); e.code=code||""; return e; }
+function cheminAPI(chemin){ return chemin.split("/").map(encodeURIComponent).join("/"); }
+async function ghApi(chemin, opts){
+  opts=opts||{};
+  let r;
+  try{
+    r = await fetch("https://api.github.com/repos/"+GH.owner+"/"+GH.repo+chemin, {
+      method: opts.method||"GET",
+      cache: "no-store",
+      keepalive: !!opts.keepalive,
+      headers: Object.assign({
+        "Authorization": "Bearer "+(opts.cle||ghCle()),
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+      }, opts.body ? {"Content-Type":"application/json"} : {}),
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+  }catch(e){
+    throw erreurGH("Pas de connexion à GitHub (réseau coupé ?). Rien n'est perdu : l'envoi reprendra.", "reseau");
+  }
+  if(r.status===401)
+    throw erreurGH("GitHub refuse la clé : elle a expiré ou a été révoquée. Crée-en une nouvelle et colle-la ici. "+
+                   "Tes modifications restent gardées dans ce navigateur en attendant.", "cle");
+  if(r.status===403 && r.headers.get("x-ratelimit-remaining")==="0")
+    throw erreurGH("Trop de requêtes vers GitHub pour l'instant. Réessaie dans quelques minutes.", "quota");
+  if(r.status===403)
+    throw erreurGH("La clé n'a pas le droit d'écrire dans ce dépôt. Vérifie qu'elle donne « Contents : Read and write » sur yalentin/recettes.", "droits");
+  return r;
+}
+/* --- encodage base64, que l'API exige pour le contenu des fichiers ----- */
+function texteVersB64(txt){
+  const oct=new TextEncoder().encode(txt); let bin="";
+  for(let i=0;i<oct.length;i+=0x8000) bin+=String.fromCharCode.apply(null, oct.subarray(i,i+0x8000));
+  return btoa(bin);
+}
+function b64VersTexte(b64){
+  const bin=atob(String(b64).replace(/\s/g,"")), oct=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) oct[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(oct);
+}
+function blobVersB64(blob){
   return new Promise((ok,ko)=>{
-    const r=indexedDB.open("carnet_fs",1);
-    r.onupgradeneeded=e=>e.target.result.createObjectStore("poignees");
-    r.onsuccess=e=>ok(e.target.result); r.onerror=()=>ko(r.error);
+    const fr=new FileReader();
+    fr.onload=()=>ok(String(fr.result).split(",")[1]);
+    fr.onerror=()=>ko(fr.error); fr.readAsDataURL(blob);
   });
 }
-function idbLire(cle){
-  return idbOuvrir().then(db=>new Promise(ok=>{
-    const q=db.transaction("poignees").objectStore("poignees").get(cle);
-    q.onsuccess=()=>ok(q.result||null); q.onerror=()=>ok(null);
-  })).catch(()=>null);
-}
-function idbEcrire(cle,val){
-  return idbOuvrir().then(db=>new Promise(ok=>{
-    const tx=db.transaction("poignees","readwrite");
-    tx.objectStore("poignees").put(val,cle);
-    tx.oncomplete=()=>ok(true); tx.onerror=()=>ok(false);
-  })).catch(()=>false);
-}
 
-let dossierCarnet=null;
-
-/* ---------------------------------------------------------------------
-   ACCÈS AU DOSSIER — et pourquoi il est demandé SÉPARÉMENT
-   Première version : on demandait le dossier au milieu de « choisir une
-   photo », donc APRÈS que l'utilisateur avait déjà choisi son fichier. Deux
-   fenêtres natives à la suite, la seconde sans rapport apparent avec ce
-   qu'on venait de faire — on la referme, et la photo part silencieusement
-   dans le repli. C'est exactement ce qui s'est produit.
-   Le repli n'est plus jamais automatique : il faut le demander.
-   --------------------------------------------------------------------- */
-function etatAcces(){
-  if(!window.showDirectoryPicker) return "api-absente";
-  return dossierCarnet ? "accorde" : "inconnu";
+/* --- lecture des notes ------------------------------------------------- */
+/* Pour Val : directement dans le dépôt, avec l'empreinte (sha) du fichier,
+   exigée par GitHub pour le réécrire. */
+async function lireNotesGH(){
+  const r = await ghApi("/contents/"+cheminAPI(GH.notes)+"?ref="+GH.branch);
+  if(r.status===404) return {notes:{}, sha:null};
+  if(!r.ok) throw erreurGH("Lecture des notes impossible (GitHub a répondu "+r.status+").");
+  const j = await r.json();
+  let notes={};
+  try{ notes = JSON.parse(b64VersTexte(j.content)) || {}; }catch(e){ throw erreurGH("recettes-notes.json est illisible sur GitHub."); }
+  return {notes, sha:j.sha};
 }
-/* Vérifie que le dossier choisi est bien CELUI DU CARNET. Sans ce contrôle,
-   choisir par erreur son dossier personnel y créerait un images/ fantôme et
-   les photos partiraient dans le vide. */
-async function estDossierCarnet(h){
-  try{ await h.getFileHandle("recettes-data.js"); return true; }
-  catch(e){ return false; }
-}
-async function reprendreDossier(){          // sans fenêtre : au chargement
-  if(!window.showDirectoryPicker) return null;
-  if(!dossierCarnet) dossierCarnet = await idbLire("dossier");
-  if(!dossierCarnet) return null;
-  const etat = await dossierCarnet.queryPermission({mode:"readwrite"});
-  if(etat!=="granted"){ return null; }
-  return dossierCarnet;
-}
-/* Demande l'accès. Renvoie {ok:true} ou {ok:false, raison, message}. */
-async function demanderDossier(){
-  if(!window.showDirectoryPicker)
-    return {ok:false, raison:"api-absente",
-      message:"Ce navigateur n'expose pas l'API d'accès aux fichiers. BRAVE LA DÉSACTIVE PAR DÉFAUT : "+
-              "ouvre brave://flags/#file-system-access-api, passe le réglage sur Enabled, relance Brave, "+
-              "et réessaie. (Firefox, lui, ne l'implémente pas du tout.)"};
+/* Pour un visiteur : la copie publiée avec le site. */
+async function lireNotesPubliees(){
   try{
-    if(!dossierCarnet) dossierCarnet = await idbLire("dossier");
-    if(dossierCarnet){
-      let etat = await dossierCarnet.queryPermission({mode:"readwrite"});
-      if(etat==="prompt") etat = await dossierCarnet.requestPermission({mode:"readwrite"});
-      if(etat==="granted" && await estDossierCarnet(dossierCarnet)) return {ok:true};
-      dossierCarnet=null;
+    const r = await fetch(GH.notes, {cache:"no-cache"});
+    return r.ok ? (await r.json()) || {} : {};
+  }catch(e){ return {}; }
+}
+/* Appelé une fois la page affichée. */
+async function chargerNotes(){
+  try{
+    if(PROPRIO){
+      const {notes} = await lireNotesGH();
+      NOTES = fusionNotes(notes, NOTES);
+      notesEcrire();
+      let attente=false; try{ attente = localStorage.getItem(NOTES_ATTENTE_KEY)==="1"; }catch(e){}
+      if(attente) planifierEnvoi(1000);
+    } else {
+      NOTES = fusionNotes(await lireNotesPubliees(), {});
     }
-    const h = await window.showDirectoryPicker({mode:"readwrite", id:"carnet"});
-    if(!(await estDossierCarnet(h)))
-      return {ok:false, raison:"mauvais-dossier",
-        message:"Ce dossier ne contient pas recettes-data.js — ce n'est pas le dossier du carnet. Recommence en choisissant le dossier qui contient recettes.html."};
-    let etat = await h.queryPermission({mode:"readwrite"});
-    if(etat==="prompt") etat = await h.requestPermission({mode:"readwrite"});
-    if(etat!=="granted")
-      return {ok:false, raison:"refus", message:"Écriture refusée sur ce dossier."};
-    dossierCarnet=h; await idbEcrire("dossier",h);
-    return {ok:true};
   }catch(e){
-    if(e.name==="AbortError")
-      return {ok:false, raison:"annule",
-        message:"Fenêtre fermée sans choisir de dossier. Rien n'a été enregistré."};
-    return {ok:false, raison:e.name,
-      message:"Le navigateur a refusé l'accès au dossier ("+e.name+" : "+e.message+")."};
+    ENVOI.etat="erreur"; ENVOI.erreur=e.message;
+  }
+  majIndicateurNotes();
+  if(typeof renderFacets==="function") renderFacets();
+  if(typeof renderAll==="function") renderAll();
+  if(currentId) openRecipe(currentId, detailOrigin);
+}
+
+/* --- envoi des notes ---------------------------------------------------- */
+function marquerAttente(oui){
+  try{ oui ? localStorage.setItem(NOTES_ATTENTE_KEY,"1") : localStorage.removeItem(NOTES_ATTENTE_KEY); }catch(e){}
+}
+function planifierEnvoi(delai){
+  if(!PROPRIO) return;
+  marquerAttente(true);
+  if(ENVOI.etat!=="erreur") ENVOI.etat="attente";
+  clearTimeout(ENVOI.minuteur);
+  ENVOI.minuteur=setTimeout(envoyerNotes, delai===undefined ? ENVOI_DELAI : delai);
+  majIndicateurNotes();
+}
+function notesVersJson(notes){
+  // une recette par ligne, triées : l'historique GitHub reste lisible
+  const ids=Object.keys(notes).sort();
+  return "{\n"+ids.map(id=>"  "+JSON.stringify(id)+": "+JSON.stringify(notes[id])).join(",\n")+(ids.length?"\n":"")+"}\n";
+}
+function resumeEnvoi(avant, apres){
+  const titre=id=>{ const r=RECETTES.find(x=>x.id===id); return r ? r.title : id; };
+  const changes=Object.keys(apres).filter(id=>JSON.stringify(avant[id]||null)!==JSON.stringify(apres[id]));
+  const noms=changes.slice(0,3).map(titre).join(", ")+(changes.length>3?" et "+(changes.length-3)+" autre(s)":"");
+  return "Notes : "+(noms||"mise à jour");
+}
+async function envoyerNotes(opts){
+  opts=opts||{};
+  if(!PROPRIO) return;
+  clearTimeout(ENVOI.minuteur);
+  if(ENVOI.enCours){ planifierEnvoi(3000); return; }
+  ENVOI.enCours=true; ENVOI.etat="envoi"; majIndicateurNotes();
+  let changementDistant=false;
+  try{
+    for(let essai=0; ; essai++){
+      const {notes:distantes, sha} = await lireNotesGH();
+      const avant=JSON.stringify(NOTES);
+      const fusion=fusionNotes(distantes, NOTES);
+      if(JSON.stringify(fusion)!==avant) changementDistant=true;
+      NOTES=fusion; notesEcrire();
+      const contenu=notesVersJson(NOTES);
+      if(contenu===notesVersJson(fusionNotes(distantes,{}))) break;   // rien à envoyer
+      const r = await ghApi("/contents/"+cheminAPI(GH.notes), {method:"PUT", keepalive:!!opts.keepalive, body:{
+        message: resumeEnvoi(fusionNotes(distantes,{}), NOTES),
+        content: texteVersB64(contenu), sha: sha||undefined, branch: GH.branch,
+        committer: GH_AUTEUR, author: GH_AUTEUR }});
+      if(r.ok) break;
+      // 409 / 422 : le fichier a changé entre la lecture et l'écriture
+      // (autre onglet, autre appareil). On relit, on refusionne, on réessaie.
+      if((r.status===409 || r.status===422) && essai<3) continue;
+      throw erreurGH("GitHub a refusé l'enregistrement ("+r.status+").");
+    }
+    marquerAttente(false);
+    ENVOI.etat="ok"; ENVOI.erreur=""; ENVOI.dernier=Date.now();
+    try{ localStorage.setItem("carnet_notes_envoi_t", String(ENVOI.dernier)); }catch(e){}
+  }catch(e){
+    ENVOI.etat="erreur"; ENVOI.erreur=e.message;
+    // nouvelle tentative automatique sur simple coupure de réseau
+    if(e.code==="reseau"){ clearTimeout(ENVOI.minuteur); ENVOI.minuteur=setTimeout(envoyerNotes, 60000); }
+  }finally{
+    ENVOI.enCours=false; majIndicateurNotes();
+    if(changementDistant){ if(typeof renderFacets==="function") renderFacets(); }
   }
 }
-async function dossierImages(){
-  const d = dossierCarnet || await reprendreDossier();
-  if(!d) return null;
-  return await d.getDirectoryHandle("images",{create:true});
+/* on quitte l'onglet ou on verrouille le téléphone : envoyer tout de suite */
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState==="hidden" && PROPRIO && ENVOI.etat==="attente") envoyerNotes({keepalive:true});
+});
+
+/* --- connexion / déconnexion de ce navigateur ---------------------------- */
+async function connecterCle(cle){
+  cle=String(cle||"").trim();
+  if(!/^(github_pat_|ghp_)[A-Za-z0-9_]+$/.test(cle))
+    return "Ce n'est pas une clé GitHub : elle commence par github_pat_.";
+  try{
+    const r = await ghApi("/contents/"+cheminAPI(GH.notes)+"?ref="+GH.branch, {cle});
+    if(!r.ok && r.status!==404) return "GitHub a répondu "+r.status+" : la clé ne donne pas accès au dépôt yalentin/recettes.";
+  }catch(e){ return e.message; }
+  try{ localStorage.setItem(GH_CLE_KEY, cle); }catch(e){ return "Ce navigateur refuse d'enregistrer la clé (navigation privée ?)."; }
+  PROPRIO=true; document.documentElement.setAttribute("data-proprio","");
+  ENVOI.etat="ok"; ENVOI.erreur="";
+  await chargerNotes();
+  return "";
+}
+function deconnecter(){
+  if(ENVOI.etat==="attente" || ENVOI.etat==="erreur"){
+    if(!confirm("Des modifications ne sont pas encore enregistrées sur GitHub. Déconnecter quand même ? Elles seront perdues.")) return;
+  }
+  try{ localStorage.removeItem(GH_CLE_KEY); localStorage.removeItem(NOTES_KEY); localStorage.removeItem(NOTES_ATTENTE_KEY); }catch(e){}
+  clearTimeout(ENVOI.minuteur);
+  PROPRIO=false; document.documentElement.removeAttribute("data-proprio");
+  ENVOI.etat="ok"; ENVOI.erreur="";
+  chargerNotes();
 }
 
-/* --- redimensionnement ------------------------------------------------- */
+/* --- photos ---------------------------------------------------------------- */
 async function redimensionner(fichier){
   let bmp;
   try{ bmp = await createImageBitmap(fichier); }
   catch(e){
-    throw new Error("Format d'image non lisible par le navigateur. "+
-      "Les photos d'iPhone en HEIC ne sont pas décodables ici — "+
+    throw new Error("Format d'image non lisible par ce navigateur. "+
+      "Sur l'ordinateur, les photos d'iPhone en HEIC ne passent pas : "+
       "convertis-les en JPEG avant, ou règle l'iPhone sur « Le plus compatible ».");
   }
   const ech = Math.min(1, IMG_MAX_PX/Math.max(bmp.width,bmp.height));
@@ -2611,92 +2716,74 @@ async function redimensionner(fichier){
   if(!blob) throw new Error("Le réencodage de l'image a échoué.");
   return blob;
 }
-/* --- choisir un fichier : sélecteur natif ------------------------------- */
-async function choisirFichierImage(){
-  if(window.showOpenFilePicker){
-    const [h] = await window.showOpenFilePicker({
-      id:"photos", multiple:false,
-      types:[{description:"Images", accept:{"image/*":[".jpg",".jpeg",".png",".webp",".avif",".gif"]}}]
-    });
-    return await h.getFile();
-  }
-  // repli : <input type=file> ouvre le même sélecteur GNOME
-  return await new Promise((ok,ko)=>{
+/* <input type=file> : ouvre le sélecteur de GNOME sur l'ordinateur, et la
+   photothèque ou l'appareil photo sur l'iPhone */
+function choisirFichierImage(){
+  return new Promise((ok,ko)=>{
     const i=document.createElement("input"); i.type="file"; i.accept="image/*";
     i.onchange=()=>i.files[0]?ok(i.files[0]):ko(new Error("Aucun fichier choisi."));
     i.click();
   });
 }
-
-/* --- poser une photo sur une recette ------------------------------------
-   Le repli (photo encapsulée dans le fichier de notes) n'est JAMAIS pris
-   tout seul : il faut cliquer un second bouton qui apparaît alors. Une
-   dégradation qui fait perdre la durabilité de la donnée ne doit pas être
-   silencieuse — sinon on croit que c'est enregistré sur le disque alors que
-   ça ne vit que dans le navigateur.
-   ------------------------------------------------------------------------ */
 function direImg(txt, err){
   const e=document.getElementById("imgEtat");
   if(e){ e.textContent=txt||""; e.className=err?"err":""; }
 }
-async function autoriserDossier(id){
-  direImg("Choisis le dossier qui contient recettes.html…");
-  const r = await demanderDossier();
-  if(!r.ok){ direImg(r.message, true); return false; }
-  direImg("Accès au dossier accordé. Tu peux maintenant choisir une photo.");
-  if(currentId) openRecipe(currentId, detailOrigin);
-  return true;
-}
 async function poserPhoto(id){
-  let dossier = await dossierImages();
-  if(!dossier){
-    if(!(await autoriserDossier(id))) return;
-    dossier = await dossierImages();
-    if(!dossier){ direImg("Accès au dossier toujours indisponible.", true); return; }
-  }
+  if(!PROPRIO){ direImg("Connecte d'abord ta clé GitHub dans « Mes notes ».", true); return; }
   let fichier;
   try{ fichier = await choisirFichierImage(); }catch(e){ return; }
   direImg("Traitement de l'image…");
   let blob;
   try{ blob = await redimensionner(fichier); }catch(e){ direImg(e.message,true); return; }
+  direImg("Envoi sur GitHub…");
+  const r0=RECETTES.find(x=>x.id===id);
+  const nom=id+"-"+Date.now().toString(36)+".jpg", chemin="images/"+nom;
   try{
-    const chemin = await ecrireImage(id, blob, dossier);
-    appliquerImage(id, chemin, 0);
-    direImg("Photo écrite dans "+chemin+" ("+Math.round(blob.size/1024)+" Ko).");
-  }catch(e){ direImg("Écriture impossible dans images/ : "+e.message, true); }
-}
-/* écrit le blob dans images/ sous un nom neuf, et retire la version
-   précédente que NOUS avions écrite (nom neuf = pas d'ennui de cache) */
-async function ecrireImage(id, blob, dossier){
-  const nom = id+"-"+Date.now().toString(36)+".jpg";
-  const fh = await dossier.getFileHandle(nom,{create:true});
-  const w = await fh.createWritable();
-  await w.write(blob); await w.close();
+    const r = await ghApi("/contents/"+cheminAPI(chemin), {method:"PUT", body:{
+      message: "Photo : "+(r0?r0.title:id), content: await blobVersB64(blob),
+      branch: GH.branch, committer: GH_AUTEUR, author: GH_AUTEUR }});
+    if(!r.ok) throw erreurGH("GitHub a refusé la photo ("+r.status+").");
+  }catch(e){ direImg("Photo non enregistrée : "+e.message, true); return; }
+  IMAGES_SESSION[chemin]=URL.createObjectURL(blob);
   const ancienne=(NOTES[id]||{}).img;
-  if(ancienne && ancienne.indexOf("images/")===0){
-    const vieux=ancienne.split("/").pop();
-    if(vieux!==nom && vieux.indexOf(id+"-")===0){ try{ await dossier.removeEntry(vieux); }catch(e){} }
-  }
-  return "images/"+nom;
+  appliquerImage(id, chemin, 0);
+  envoyerNotes();                       // le remplacement part tout de suite
+  supprimerAnciennePhoto(id, ancienne, nom);
+  direImg("Photo enregistrée ("+Math.round(blob.size/1024)+" Ko). Elle sera visible pour tout le monde d'ici une à deux minutes.");
+}
+/* retire la photo que la page avait elle-même envoyée pour cette recette ;
+   jamais une image posée par le skill d'ingestion (nom sans suffixe) */
+async function supprimerAnciennePhoto(id, ancienne, nouveau){
+  if(!ancienne || ancienne.indexOf("images/"+id+"-")!==0 || ancienne==="images/"+nouveau) return;
+  try{
+    const r = await ghApi("/contents/"+cheminAPI(ancienne)+"?ref="+GH.branch);
+    if(!r.ok) return;
+    const j = await r.json();
+    await ghApi("/contents/"+cheminAPI(ancienne), {method:"DELETE", body:{
+      message:"Photo remplacée : "+ancienne, sha:j.sha, branch:GH.branch, committer:GH_AUTEUR, author:GH_AUTEUR }});
+  }catch(e){ /* sans gravité : il reste un fichier orphelin dans images/ */ }
 }
 function appliquerImage(id, valeur, web){
+  if(!PROPRIO) return;
   const n=Object.assign({r:0,w:0,t:0}, NOTES[id]);
   n.img=valeur; n.imgWeb=web?1:0; n.t=Date.now();
-  NOTES[id]=n; notesEcrire(); majIndicateurNotes();
+  NOTES[id]=n; notesEcrire(); planifierEnvoi();
   if(currentId===id) openRecipe(id, detailOrigin);
 }
 function retirerImage(id){ appliquerImage(id,"",0); }
 function retablirImage(id){
-  noterRecette(id,"imgWeb",undefined);
-  noterRecette(id,"img",undefined);
+  if(!PROPRIO) return;
+  const n=Object.assign({r:0,w:0,t:0}, NOTES[id]);
+  delete n.img; delete n.imgWeb; n.t=Date.now();
+  NOTES[id]=n; notesEcrire(); planifierEnvoi();
   if(currentId===id) openRecipe(id, detailOrigin);
 }
 function poserUrlImage(id){
   const champ=document.getElementById("imgUrl"); if(!champ) return;
   const u=champ.value.trim();
-  const etat=document.getElementById("imgEtat");
-  if(!/^https?:\/\//i.test(u)){
-    if(etat){ etat.textContent="Adresse invalide : elle doit commencer par http:// ou https://"; etat.className="err"; }
+  if(!/^https?:\/\/[^\s"'<>`]+$/i.test(u)){
+    direImg("Adresse invalide : elle doit commencer par http:// ou https://", true);
     return;
   }
   appliquerImage(id,u,1);
@@ -2708,99 +2795,54 @@ function basculerPanneauImage(){
 }
 
 /* =====================================================================
-   PANNEAU « MES NOTES » — export et import sur le disque
-   ---------------------------------------------------------------------
-   Le seul pont possible entre une page en file:// et le dossier : un
-   téléchargement que l'utilisateur dépose lui-même. Le fichier produit est
-   du JavaScript exécutable (et non du JSON) pour pouvoir être rechargé par
-   une simple balise <script>, sans fetch — fetch est bloqué en file:// par
-   la politique d'origine de tous les navigateurs.
+   PANNEAU « MES NOTES » — état de l'enregistrement, connexion de la clé
    ===================================================================== */
 function majIndicateurNotes(){
   const b=document.getElementById("notesBtn");
   if(!b) return;
-  const n=notesNonExportees();
-  b.textContent = n ? `Mes notes (${n} à enregistrer)` : "Mes notes";
+  b.textContent = !PROPRIO ? "Mes notes"
+    : ENVOI.etat==="erreur" ? "Mes notes (⚠ non enregistré)"
+    : (ENVOI.etat==="attente" || ENVOI.etat==="envoi") ? "Mes notes (enregistrement…)"
+    : "Mes notes";
   const panel=document.getElementById("notesPanel");
   if(panel && !panel.hidden) rendreNotesPanel();
 }
 function rendreNotesPanel(){
   const panel=document.getElementById("notesPanel");
   if(!panel) return;
-  const total=Object.keys(NOTES).length;
-  const notees=Object.values(NOTES).filter(n=>n.r).length;
-  const favoris=Object.values(NOTES).filter(n=>n.w).length;
-  const enAttente=notesNonExportees();
-  let ts=0; try{ ts=+localStorage.getItem(NOTES_EXPORT_KEY)||0; }catch(e){}
-  const quand = ts ? new Date(ts).toLocaleDateString("fr-BE",{day:"2-digit",month:"2-digit",year:"numeric"}) : "jamais";
-  panel.innerHTML =
-    `<p><b>${notees}</b> recette${notees>1?'s':''} notée${notees>1?'s':''} · <b>${favoris}</b> favori${favoris>1?'s':''}</p>`+
-    (enAttente
-      ? `<p class="warnline">${enAttente} modification${enAttente>1?'s':''} vit${enAttente>1?'vent':''} seulement dans ce navigateur.</p>`
-      : `<p>Tout est enregistré sur le disque.</p>`)+
-    `<p>Dernier enregistrement : ${quand}.</p>`+
-    `<button type="button" class="npbtn primary" id="npExport">Enregistrer sur le disque</button>`+
-    `<button type="button" class="npbtn" id="npImport">Recharger depuis un fichier…</button>`+
-    `<input type="file" id="npFile" accept=".js,.json,application/json,text/javascript" hidden>`+
-    `<p>L'enregistrement télécharge <b>recettes-notes.js</b> : dépose-le dans le dossier du carnet, à côté de recettes.html, en remplaçant l'ancien.</p>`;
-  panel.querySelector("#npExport").onclick=exporterNotes;
-  panel.querySelector("#npImport").onclick=()=>panel.querySelector("#npFile").click();
-  panel.querySelector("#npFile").onchange=e=>{
-    const f=e.target.files[0]; if(!f) return;
-    const fr=new FileReader();
-    fr.onload=()=>{ importerNotes(fr.result); e.target.value=""; };
-    fr.readAsText(f);
-  };
-}
-function exporterNotes(){
-  const maintenant=Date.now();
-  const lignes=Object.keys(NOTES).sort().map(id=>{
-    const n=NOTES[id];
-    let champs='"r":'+(n.r||0)+',"w":'+(n.w||0)+',"t":'+(n.t||0);
-    if(n.img!==undefined) champs+=',"img":'+JSON.stringify(n.img)+',"imgWeb":'+(n.imgWeb||0);
-    return '  '+JSON.stringify(id)+': {'+champs+'}';
-  });
-  const contenu = [
-    '/* Notes personnelles du carnet de recettes — étoiles (r, 0 à 5) et',
-    '   favori (w, 0 ou 1). t = horodatage de la dernière',
-    '   modification, utilisé pour fusionner ce fichier avec les notes du',
-    '   navigateur au chargement : la version la plus récente gagne.',
-    '   Généré le '+new Date(maintenant).toLocaleString("fr-BE")+' — écrasable sans risque. */',
-    'window.NOTES_DISQUE = {',
-    lignes.join(',\n'),
-    '};',
-    ''
-  ].join('\n');
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([contenu],{type:"text/javascript;charset=utf-8"}));
-  a.download="recettes-notes.js";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-  try{ localStorage.setItem(NOTES_EXPORT_KEY, String(maintenant)); }catch(e){}
-  majIndicateurNotes();
-}
-function importerNotes(texte){
-  let obj=null;
-  try{
-    const m=String(texte).match(/NOTES_DISQUE\s*=\s*(\{[\s\S]*\})\s*;?\s*$/);
-    obj=JSON.parse(m ? m[1] : texte);
-  }catch(e){ obj=null; }
-  if(!obj || typeof obj!=="object"){
-    alert("Fichier illisible : ni un recettes-notes.js, ni un JSON de notes.");
+  const vals=Object.values(NOTES);
+  const notees=vals.filter(n=>n.r).length, favoris=vals.filter(n=>n.w).length;
+  const bilan=`<p><b>${notees}</b> recette${notees>1?'s':''} notée${notees>1?'s':''} · <b>${favoris}</b> favori${favoris>1?'s':''}</p>`;
+  if(!PROPRIO){
+    panel.innerHTML = bilan+
+      `<p>Carnet en lecture seule.</p>`+
+      `<p>C'est ton carnet ? Colle ta clé GitHub pour noter et ajouter des photos depuis ce navigateur. Elle reste dans ce navigateur et n'est envoyée qu'à GitHub.</p>`+
+      `<input type="password" class="img-url" id="npCle" placeholder="github_pat_…" autocomplete="off" spellcheck="false">`+
+      `<button type="button" class="npbtn primary" id="npConnecter">Connecter</button>`+
+      `<p id="npEtat"></p>`;
+    const go=async()=>{
+      const etat=panel.querySelector("#npEtat"), bouton=panel.querySelector("#npConnecter");
+      bouton.disabled=true; etat.textContent="Vérification auprès de GitHub…"; etat.className="";
+      const err=await connecterCle(panel.querySelector("#npCle").value);
+      if(err){ etat.textContent=err; etat.className="warnline"; bouton.disabled=false; }
+      else rendreNotesPanel();
+    };
+    panel.querySelector("#npConnecter").onclick=go;
+    panel.querySelector("#npCle").onkeydown=e=>{ if(e.key==="Enter") go(); };
     return;
   }
-  // même règle de fusion qu'au démarrage : la note la plus récente gagne.
-  let touchees=0;
-  Object.keys(obj).forEach(id=>{
-    const a=obj[id], b=NOTES[id];
-    if(!a || (!a.r && !a.w && a.img===undefined)) return;
-    if(!b || (+a.t||0) > (b.t||0)){
-      NOTES[id]={r:+a.r||0,w:a.w?1:0,t:+a.t||0};
-      if(a.img!==undefined){ NOTES[id].img=String(a.img); NOTES[id].imgWeb=a.imgWeb?1:0; }
-      touchees++; }
-  });
-  notesEcrire(); majIndicateurNotes(); renderAll();
-  alert(touchees ? touchees+" note(s) reprise(s) du fichier." : "Rien de plus récent dans ce fichier.");
+  let t=ENVOI.dernier; if(!t){ try{ t=+localStorage.getItem("carnet_notes_envoi_t")||0; }catch(e){} }
+  const quand = t ? new Date(t).toLocaleString("fr-BE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "pas encore depuis ce navigateur";
+  const ligne =
+    ENVOI.etat==="erreur" ? `<p class="warnline">${ENVOI.erreur.replace(/</g,"&lt;")}</p><button type="button" class="npbtn primary" id="npReessayer">Réessayer maintenant</button>`
+    : ENVOI.etat==="envoi" ? `<p>Envoi sur GitHub…</p>`
+    : ENVOI.etat==="attente" ? `<p>Enregistrement dans quelques secondes…</p>`
+    : `<p>Tout est enregistré sur GitHub.</p>`;
+  panel.innerHTML = bilan+ligne+
+    `<p>Dernier envoi : ${quand}. Les autres appareils voient les changements d'ici une à deux minutes.</p>`+
+    `<button type="button" class="npbtn" id="npDeco">Déconnecter ce navigateur</button>`;
+  const re=panel.querySelector("#npReessayer"); if(re) re.onclick=()=>envoyerNotes();
+  panel.querySelector("#npDeco").onclick=()=>{ deconnecter(); rendreNotesPanel(); };
 }
 (function(){
   const btn=document.getElementById("notesBtn"), panel=document.getElementById("notesPanel");
@@ -2818,10 +2860,8 @@ function importerNotes(texte){
     if(e.key==="Escape" && !panel.hidden){ panel.hidden=true; btn.setAttribute("aria-expanded","false"); btn.focus(); }
   });
   majIndicateurNotes();
-  // si l'accès au dossier a déjà été accordé lors d'une session précédente,
-  // on le reprend sans fenêtre, pour que l'état affiché soit juste.
-  if(window.showDirectoryPicker) reprendreDossier().catch(()=>{});
 })();
+window.addEventListener("load", function(){ chargerNotes(); });
 
 /* =====================================================================
    MENU APPARENCE — style + palette + affichage des images
