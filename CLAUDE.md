@@ -84,6 +84,9 @@ décisions de design résumées ci-dessous font foi.
   cartes ; l'accent est réservé à l'action principale, aux filtres actifs, aux
   numéros d'étape et aux étoiles. Les étoiles d'une carte non notée
   n'apparaissent qu'au survol ou au focus.
+  Un assaisonnement (`warn`) est signalé par la mention « au goût » en texte
+  secondaire après la quantité, cliquable pour l'explication ; plus de « ! »
+  cerclé de rouge, qui se lisait comme une erreur.
 - **Étoiles et favoris** : deux jugements indépendants (5 étoiles = « très bon »,
   cœur = « je la refais sans hésiter »). L'écouteur délégué des étoiles est posé
   **en phase de capture**, sinon cliquer une étoile ouvre la recette.
@@ -110,6 +113,10 @@ décisions de design résumées ci-dessous font foi.
 - **iPhone** : sous 780 px, colonne latérale masquée en vue fiche et filtres
   repliés par défaut ; fiche organisée pour cuisiner (titre, photo, temps,
   ingrédients, étapes ; note et image après).
+  Les −/+ des personnes font 44 px sur écran tactile ou étroit (règle en fin
+  de feuille). En Glass, le « Retour » de la fiche vit dans une barre collante
+  qui prend un fond de verre dès que la page défile (`data-defile`), pour ne
+  plus flotter par-dessus les tags et le titre.
 
 ## Enregistrement depuis la page (depuis octobre 2026)
 

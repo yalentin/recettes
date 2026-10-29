@@ -377,11 +377,15 @@
   ul.ing .q{font-family:var(--font-ui);font-weight:700;white-space:nowrap;text-align:right;
     display:flex;align-items:center;gap:6px;justify-content:flex-end;color:var(--ink);transition:color .2s;}
   ul.ing .q.flash{color:var(--accent);}
-  .wbtn{border:1px solid var(--warn);color:var(--warn);background:var(--surface-ctl);width:18px;height:18px;border-radius:var(--round);
-    font-family:var(--font-ui);font-weight:700;font-size:11px;line-height:1;cursor:pointer;padding:0;
-    display:inline-flex;align-items:center;justify-content:center;transition:background .15s,color .15s,transform .12s;}
-  .wbtn:hover{background:var(--warn);color:var(--sky5);transform:scale(1.12);}
-  .wmsg{display:none;font-family:var(--font-note);font-style:italic;font-size:12.5px;color:var(--warn);
+  /* Assaisonnement qui ne suit pas la règle de trois : mention « au goût »
+     après la quantité, en texte secondaire. Un « ! » cerclé de rouge se
+     lisait comme une erreur, et son sens n'était donné qu'au survol. */
+  .wbtn{border:none;border-bottom:1px dotted currentColor;background:none;color:var(--ink-soft);
+    font-family:var(--font-ui);font-weight:500;font-style:italic;font-size:12px;line-height:1.2;
+    letter-spacing:0;text-transform:none;cursor:pointer;padding:0;white-space:nowrap;transition:color .15s;}
+  .wbtn:hover,.wbtn[aria-expanded="true"]{color:var(--ink);}
+  .wbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px;}
+  .wmsg{display:none;font-family:var(--font-note);font-style:italic;font-size:12.5px;color:var(--ink-soft);
     margin-top:5px;line-height:1.35;font-weight:400;text-transform:none;letter-spacing:0;}
   ul.ing li.open .wmsg{display:block;}
   ul.ing .prep{color:var(--ink-soft);font-style:italic;font-size:13.5px;}
@@ -1392,7 +1396,20 @@
   html[data-style="glass"] .back:hover{transform:none;background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));}
   html[data-style="glass"] .back:active{transform:scale(.96);}
   html[data-style="glass"] .back.lg-refract{--lg-glass-edge:rgba(255,255,255,.85);}
-  html[data-style="glass"] #detailView > .back{position:sticky;top:12px;z-index:20;}
+  /* La capsule seule flottait par-dessus les tags et le titre pendant le
+     défilement (texte coupé à côté d'elle). Elle vit désormais dans une
+     barre collante, transparente en haut de page, qui prend un fond de
+     verre dès que le contenu passe dessous (classe posée au défilement). */
+  html[data-style="glass"] #detailView > .d-backbar{position:sticky;top:0;z-index:20;
+    margin:-12px -16px 0;padding:12px 16px 0;border-radius:0 0 var(--lg-r-sm) var(--lg-r-sm);
+    transition:background .2s,box-shadow .2s;}
+  html[data-style="glass"][data-defile] #detailView > .d-backbar{
+    background:linear-gradient(180deg,var(--lg-glass-tint),var(--lg-glass-tint-2));
+    -webkit-backdrop-filter:blur(var(--lg-glass-blur)) saturate(var(--lg-glass-sat));
+    backdrop-filter:blur(var(--lg-glass-blur)) saturate(var(--lg-glass-sat));
+    box-shadow:inset 0 -.5px 0 var(--line);}
+  html[data-style="glass"] #detailView > .d-backbar .back{margin-bottom:12px;}
+  html[data-style="glass"] #detailView > .d-backbar + *{margin-top:6px;}
 
   html[data-style="glass"] .d-tag{border:none;background:var(--lg-fill);font-size:.75rem;font-weight:500;
     letter-spacing:0;text-transform:none;padding:4px 10px;}
@@ -1769,6 +1786,12 @@
     html[data-style="marche"] .pl-title{font-size:30px;}
     html[data-style="marche"] .d-meta div{padding:2px 16px;}
     html[data-style="marche"] .group-h{font-size:21px;}
+  }
+  /* −/+ des personnes : on les touche en cuisinant, mains occupées → 44 px.
+     Placé en fin de feuille pour passer devant les tailles propres à chaque style. */
+  @media (pointer:coarse),(max-width:780px){
+    html[data-style] .serve button,
+    html[data-style] .stepper button{width:44px;min-width:44px;height:44px;}
   }
 </style>
 </head>
@@ -2359,7 +2382,7 @@ function openRecipe(id, origin){
       <p>La photo est redimensionnée à ${IMG_MAX_PX} px et enregistrée sur GitHub dans <b>images/</b>. La recette n'est pas modifiée : le remplacement vit dans tes notes, « rétablir » ramène l'image d'origine.</p>
     </div>`;
   d.innerHTML=`
-    <button class="back" onclick="goList()">← Retour</button>
+    <div class="d-backbar"><button class="back" onclick="goList()">← Retour</button></div>
     <div class="d-tags">${(r.tags||[]).map(t=>`<span class="d-tag">${t}</span>`).join("")}</div>
     <h1 class="d-title">${r.title}</h1>
     ${hero?`<div class="d-hero${enEnvoi?' en-envoi':''}">${hero}${enEnvoi?'':heroWeb}</div>`:""}
@@ -2404,8 +2427,8 @@ function renderIngredients(flash){
   const r=RECETTES.find(x=>x.id===currentId);
   const factor=viewServes/r.serves;
   $("#ingList").innerHTML=r.ingredients.map((i,idx)=>{
-    const w=i.warn?`<button class="wbtn" onclick="toggleW(${idx})" title="Assaisonnement">!</button>`:"";
-    const msg=i.warn?`<div class="wmsg">L'assaisonnement n'évolue pas proportionnellement à la quantité — ajuste au goût.</div>`:"";
+    const w=i.warn?`<button type="button" class="wbtn" onclick="toggleW(${idx})" aria-expanded="false" aria-controls="wm${idx}">au goût</button>`:"";
+    const msg=i.warn?`<div class="wmsg" id="wm${idx}">L'assaisonnement n'évolue pas proportionnellement à la quantité — ajuste au goût.</div>`:"";
     const prep=i.prep?`<span class="prep"> · ${i.prep}</span>`:"";
     return `<li id="ing${idx}">
       <div class="row"><span class="name">${i.item}${prep}</span>
@@ -2415,7 +2438,11 @@ function renderIngredients(flash){
   }).join("");
   if(flash){ setTimeout(function(){ document.querySelectorAll("#ingList .q.flash").forEach(function(q){q.classList.remove("flash");}); }, 280); }
 }
-function toggleW(idx){$("#ing"+idx).classList.toggle("open");}
+(function(){ let f=false;
+  function maj(){ const v=window.scrollY>8; if(v!==f){ f=v; document.documentElement.toggleAttribute("data-defile",v); } }
+  window.addEventListener("scroll",maj,{passive:true}); maj(); })();
+function toggleW(idx){const li=$("#ing"+idx), o=li.classList.toggle("open");
+  const b=li.querySelector(".wbtn"); if(b) b.setAttribute("aria-expanded",String(o));}
 
 /* =====================================================================
    PLANIFICATEUR DE COURSES
