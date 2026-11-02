@@ -251,6 +251,11 @@
     border-radius:var(--round);background:var(--ink-a16);color:var(--ink-soft);font-size:14px;line-height:1;cursor:pointer;
     display:flex;align-items:center;justify-content:center;transition:transform .14s,background .15s;padding:0;}
   .search-clear:hover{background:var(--ink-a30);transform:translateY(-50%) scale(1.14);}
+  /* Une seule croix : le champ principal a son bouton « Effacer » (#searchClear) ;
+     on retire celle que Chrome et Safari (iPhone compris) ajoutent d'eux-mêmes
+     aux champs type="search". Le champ du planificateur, sans bouton maison,
+     garde la croix du navigateur. */
+  #search::-webkit-search-cancel-button,#search::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none;}
 
   .facet{margin-top:20px;}
   .facet-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
@@ -1619,13 +1624,13 @@
      numéros d'étape et aux étoiles (décisions du carnet).
      ===================================================================== */
   html[data-style="marche"]{
-    /* ---- palette du premier rendu (Tomate ; le script repose la même) ---- */
+    /* ---- palette du premier rendu (Cerise ; le script repose la même) ---- */
     --sky1:#e7e2d8; --sky2:#eeeae2; --sky3:#f3efe7; --sky4:#f9f7f2; --sky5:#ffffff;
     --ink:#1d1b17; --ink-soft:#6b665c; --masthead:#1d1b17;
-    --accent:#b8321a; --accent-d:#932714; --acc-l:#b8321a;
+    --accent:#ae292d; --accent-d:#841f22; --acc-l:#ae292d;
     --warn:#8a5d0a; --on-accent:#ffffff;
     --line:rgba(29,27,23,.28);
-    --acc-glow:rgba(184,50,26,.72); --acc-line:rgba(184,50,26,.4); --acc-soft:rgba(184,50,26,.15);
+    --acc-glow:rgba(174,41,45,.72); --acc-line:rgba(174,41,45,.4); --acc-soft:rgba(174,41,45,.15);
     --ph-color:rgba(29,27,23,.78); --ink-a16:rgba(29,27,23,.16); --ink-a30:rgba(29,27,23,.3);
 
     /* ---- jetons propres au style ---- */
@@ -1685,10 +1690,10 @@
   html[data-style="marche"][data-dark]{
     --sky1:#0d0d0d; --sky2:#131313; --sky3:#191919; --sky4:#202020; --sky5:#282828;
     --ink:#eeeae3; --ink-soft:#a09b93; --masthead:#eeeae3;
-    --accent:#c93c1f; --accent-d:#ff8466; --acc-l:#c93c1f;
+    --accent:#d1343b; --accent-d:#ff6b70; --acc-l:#d1343b;
     --warn:#e0a84a; --on-accent:#ffffff;
     --line:rgba(238,234,227,.28);
-    --acc-glow:rgba(201,60,31,.72); --acc-line:rgba(201,60,31,.4); --acc-soft:rgba(201,60,31,.15);
+    --acc-glow:rgba(209,52,59,.72); --acc-line:rgba(209,52,59,.4); --acc-soft:rgba(209,52,59,.15);
     --ph-color:rgba(238,234,227,.78); --ink-a16:rgba(238,234,227,.16); --ink-a30:rgba(238,234,227,.3);
     /* sur fond sombre une ombre tirée de l'encre (claire) ferait un halo :
        on revient au noir, et un filet un peu plus net dessine le bord */
@@ -3500,7 +3505,7 @@ window.addEventListener("load", function(){ chargerNotes(); });
     },
     {
       /* Marché (29 octobre 2026) : le style dessiné sans consigne de style.
-         Tomate par défaut ; sombre réglé à la main (gris neutres, comme les
+         Cerise par défaut depuis le 2 novembre 2026 (Tomate avant) ; sombre réglé à la main (gris neutres, comme les
          autres styles) : remplissage #c93c1f (texte blanc 5,1:1), texte
          d'accent #ff8466 (6,1:1 sur la carte la plus claire). */
       id:"marche", name:"Marché",
@@ -3539,7 +3544,7 @@ window.addEventListener("load", function(){ chargerNotes(); });
      PREF_V force une remise à ce défaut une seule fois par navigateur ;
      l'incrémenter refera basculer tout le monde au prochain chargement. */
   const DEFAULT_STYLE   = window.STYLE_DEFAUT || "vintage";   // voir STYLE_DEFAUT en tête de fichier
-  const DEFAULT_PALETTE = "Rouge cerise";
+  const DEFAULT_PALETTE = "Cerise";   // palette par défaut du style par défaut (Marché)
   const DEFAULT_DARK    = "auto";   // "auto" = suit le système ; true / false = forcé
   const PREF_V = "7";
 
@@ -3774,7 +3779,7 @@ window.addEventListener("load", function(){ chargerNotes(); });
   function majDark(){ dark = (modeDark==="auto") ? MQ_DARK.matches : modeDark; }
   (function restore(){
     if(get(K_VER)!==PREF_V){ set(K_VER,PREF_V); set(K_DARK,"auto");   // 1re fois : défaut, mode auto
-      set("carnet_glass_v","1"); set("carnet_marche_v","1"); return; }  // bascules uniques déjà « faites »
+      set("carnet_glass_v","1"); set("carnet_marche_v","1"); set("carnet_cerise_v","1"); return; }  // bascules uniques déjà « faites »
     img  = (get(K_IMG)==="compact") ? "compact" : "on";
     const kd=get(K_DARK);
     modeDark = (kd===null || kd==="auto") ? "auto" : (kd==="1");
@@ -3785,6 +3790,10 @@ window.addEventListener("load", function(){ chargerNotes(); });
     // 29 octobre 2026 : idem pour le passage à Marché par défaut. Une seule
     // fois par navigateur ; un style choisi ensuite dans Apparence est gardé.
     if(get("carnet_marche_v")!=="1"){ set("carnet_marche_v","1"); set(K_STYLE,DEFAULT_STYLE); }
+    // 2 novembre 2026 : Cerise devient la palette par défaut de Marché. Une
+    // seule fois, on oublie la palette mémorisée pour Marché ; un choix fait
+    // ensuite dans Apparence est gardé.
+    if(get("carnet_cerise_v")!=="1"){ set("carnet_cerise_v","1"); try{ localStorage.removeItem(K_PAL+"marche"); }catch(e){} }
     const k=STYLES.findIndex(s=>s.id===get(K_STYLE));
     if(k>=0) si=k;
     pi=defaultPal(si);

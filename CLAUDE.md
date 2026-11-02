@@ -85,7 +85,8 @@ font foi.
   ont été supprimés le 3 octobre 2026. Marché (29 octobre 2026) est le style
   dessiné par Claude sans consigne de style : Fraunces + Schibsted Grotesk,
   cartes blanches à filets fins, photo sertie, étapes en frise ; quatre
-  palettes (Tomate par défaut, Cerise, Basilic, Prune). Les polices du dernier
+  palettes (Tomate, Cerise, Basilic, Prune ; Cerise par défaut depuis le
+  2 novembre 2026, `DEFAULT_PALETTE`, imposée une fois via `carnet_cerise_v`). Les polices du dernier
   style vu sont demandées dès le script de tête (`carnet_fonts_eff`). Mode Auto / Clair / Sombre, Auto par défaut.
   Accent rouge cerise `#ae292d` en clair ; en sombre, remplissage `#d1343b` et
   texte d'accent `#ff6b70` (valeurs choisies à la main dans la palette, appliquées
@@ -124,6 +125,9 @@ font foi.
   `carnet_side_ferme` et posé dès le script de tête ; glisser la poignée sous
   140 px replie aussi. Fiche et planificateur sont centrés dans la zone
   principale (`margin-inline:auto`), pas calés à gauche.
+- **Recherche** : une seule croix pour effacer, le bouton maison
+  `#searchClear` ; la croix que Chrome et Safari ajoutent aux champs
+  `type="search"` est masquée sur `#search` (Val voyait deux croix).
 - **Unités** : écrites au singulier dans les données, accordées par la page
   (`accorderUnite`, liste fermée de noms comptables).
 - **iPhone** : sous 780 px, colonne latérale masquée en vue fiche et filtres
