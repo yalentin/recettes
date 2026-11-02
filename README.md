@@ -89,8 +89,6 @@ Où vit quoi :
 - `CLAUDE.md` : le fonctionnement du carnet et les décisions déjà prises. C'est
   la référence que lit toute session, quelle qu'elle soit.
 - `.claude/skills/recette-ingestion/SKILL.md` : les règles de l'ingestion.
-- `docs/historique/` : les anciens comptes rendus de design, pour les raisons de
-  certains choix.
 
 Un retour sur le fonctionnement doit finir dans l'un de ces fichiers, sinon la
 session suivante ne le connaîtra pas. Pour revenir en arrière, tout est dans

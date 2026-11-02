@@ -66,6 +66,10 @@ Chaque recette est un objet JavaScript ajouté au tableau `window.RECETTES` de
   total et le format d'affichage.
 - **source** : courte mention d'origine. Sert au journal et à une éventuelle
   revérification ultérieure.
+  Le dépôt est public : **jamais de prénom d'un proche** (« recette de Julie »
+  → « recette d'une proche », « carnet familial »), ni dans `source` ni dans
+  `notes` ni dans le journal. Les auteurs publiés (livre, magazine, site,
+  compte TikTok) peuvent être nommés. Décision de Val, 2 novembre 2026.
 - **ingredients** : tableau d'objets.
   - `item` : **nom canonique** de l'ingrédient (celui du registre
     `recettes-ingredients.js` / `window.INGREDIENTS`). Désigne le produit

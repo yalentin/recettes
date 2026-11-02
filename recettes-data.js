@@ -2449,7 +2449,7 @@ window.RECETTES = [
     imageWeb:true,
     tags:["Plat","Fruits","Chaud","Maghrébin","Viande / poisson"],
     serves:6, prep:20, cook:40,
-    source:"PDF Epson 04-07 — e-mail (recette de Julie)",
+    source:"PDF Epson 04-07 — e-mail (recette d'une proche)",
     ingredients:[
       {item:"Épaule d'agneau", qty:1.2, unit:"kg"},
       {item:"Abricots secs", qty:500, unit:"g"},
@@ -2579,7 +2579,7 @@ window.RECETTES = [
     imageWeb:true,
     tags:["Soupe","Légumes","Chaud","Belge","Viande / poisson"],
     serves:6, prep:30, cook:80,
-    source:"PDF Epson 04-07 — e-mail (recette de Conchi)",
+    source:"PDF Epson 04-07 — e-mail (recette d'une proche)",
     ingredients:[
       {item:"Viande à braiser avec os", qty:null, unit:"un morceau"},
       {item:"Tomates", prep:"bien mûres, en morceaux", qty:3, unit:"kg"},
@@ -2719,7 +2719,7 @@ window.RECETTES = [
     imageWeb:true,
     tags:["Soupe","Légumineuses","Légumes","Chaud","Maghrébin"],
     serves:4, prep:30, cook:50,
-    source:"PDF Epson 04-07 — recette imprimée (Samar)",
+    source:"PDF Epson 04-07 — recette imprimée (recette d'une proche)",
     ingredients:[
       {item:"Lentilles vertes", qty:300, unit:"g"},
       {item:"Eau", qty:1, unit:"l"},

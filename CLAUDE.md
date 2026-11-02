@@ -22,6 +22,13 @@ Deux propriétaires qui ne se recoupent pas : le skill écrit les recettes, la p
 
 ## Règles absolues
 
+- **Pas de documents de travail sur GitHub** (décision de Val, 2 novembre 2026) :
+  audits, comptes rendus, notes de conception restent sur l'ordinateur de Val,
+  dans `docs/` (ignoré par Git), ou dans le chat. Le dépôt public ne contient que
+  le site, ses données, les journaux d'ingestion et les instructions de Claude.
+- **Pas de prénoms de proches dans les données publiques** : dans `source` ou
+  `notes`, écrire « recette d'une proche », « carnet familial »… Les auteurs
+  publiés (livre, magazine, site, TikTok) peuvent être nommés.
 - **Ne jamais envoyer `dépôt/` ni `.sauvegardes/` sur GitHub.** Ces dossiers
   n'existent que sur l'ordinateur de Val (sources brutes : captures de
   messageries, photos de recettes manuscrites familiales, audio). Ils sont dans
@@ -61,10 +68,14 @@ Deux propriétaires qui ne se recoupent pas : le skill écrit les recettes, la p
 
 ## Décisions déjà prises (ne pas les défaire sans que Val le demande)
 
-Historique détaillé et raisons de ces choix : `docs/historique/` (critique du
-design du 20 septembre 2026, audit mobile du 3 octobre 2026). Ces textes décrivent
-encore l'ancien fonctionnement local pour les notes et les images ; seules les
-décisions de design résumées ci-dessous font foi.
+Les comptes rendus détaillés (critique du design du 20 septembre 2026, audit
+mobile du 3 octobre 2026, audit des recettes du 2 novembre 2026) sont dans
+`docs/`, sur l'ordinateur de Val seulement. Les décisions résumées ci-dessous
+font foi.
+
+- **Tags « Ingrédient principal »** (audit du 2 novembre 2026) : « Riz » se pose
+  aussi sur un plat servi avec du riz, « Œufs » aussi quand l'œuf sert de liant.
+  Val préfère ce fonctionnement : ne pas proposer de le restreindre.
 
 - **Apparence** : quatre styles (Marché par défaut depuis le 29 octobre 2026,
   Liquid Glass, Vintage, Éditorial ; `STYLE_DEFAUT` en tête de `index.html`,

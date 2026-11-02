@@ -3,6 +3,9 @@
 dépôt/
 .sauvegardes/
 
+# Documents de travail (audits, comptes rendus) : sur l'ordinateur seulement.
+docs/
+
 # Divers système
 .DS_Store
 Thumbs.db
