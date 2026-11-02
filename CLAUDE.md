@@ -125,6 +125,12 @@ font foi.
   `carnet_side_ferme` et posé dès le script de tête ; glisser la poignée sous
   140 px replie aussi. Fiche et planificateur sont centrés dans la zone
   principale (`margin-inline:auto`), pas calés à gauche.
+- **Mode compact** (2 novembre 2026) : étoiles et cœur jamais devant le
+  titre (leur largeur variable décalait les titres, retour de Val). Sur écran
+  large, dernière colonne à droite, de largeur fixe (148 px) même vide, pour
+  que le temps tombe au même endroit sur chaque ligne ; sous 600 px, ligne à
+  part sous tags et temps, alignée à gauche ; sur écran tactile étroit, rien
+  pour une recette non notée.
 - **Recherche** : une seule croix pour effacer, le bouton maison
   `#searchClear` ; la croix que Chrome et Safari ajoutent aux champs
   `type="search"` est masquée sur `#search` (Val voyait deux croix).

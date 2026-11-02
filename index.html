@@ -1159,6 +1159,28 @@
   html:not([data-proprio]) .note-row button{pointer-events:none;cursor:default;}
   html:not([data-proprio]) .note-row .st:not(.on),
   html:not([data-proprio]) .note-row .wish[aria-pressed="false"]{display:none;}
+
+  /* COMPACT (2 novembre 2026) : étoiles et cœur en dernière colonne, à
+     droite, jamais devant le titre. Placés devant, leur largeur variable
+     (cœur plein ou vide, croix d'effacement) décalait chaque titre et la
+     liste paraissait mal alignée (retour de Val). La colonne a une largeur
+     fixe, réservée même quand elle est vide, pour que « Pour 4 · 30 min »
+     tombe au même endroit sur toutes les lignes. */
+  html[data-img="compact"] .card .note-row{order:4;flex:0 0 148px;margin-top:0;min-height:0;}
+  html:not([data-proprio])[data-img="compact"] .card:not([data-noted]) .note-row{display:flex;visibility:hidden;}
+  @media(max-width:600px){
+    /* écran étroit : sur sa propre ligne, sous les tags et le temps, alignée
+       à gauche comme le titre (en bout de ligne, elle passait à la ligne une
+       fois sur deux selon la longueur des tags). */
+    html[data-img="compact"] .card .note-row{flex:1 0 100%;margin-top:2px;}
+    html:not([data-proprio])[data-img="compact"] .card:not([data-noted]) .note-row{display:none;}
+  }
+  @media(max-width:600px) and (hover:none){
+    /* écran tactile : pas de survol pour révéler les étoiles d'une recette
+       non notée, la ligne vide ne ferait qu'allonger la carte ; on note
+       depuis la fiche. */
+    html[data-img="compact"] .card:not([data-noted]) .note-row{display:none;}
+  }
   /* la base n'est rappelée que lorsqu'on s'en écarte (elle doublait le sélecteur) */
   .serve-base{margin:-8px 0 14px;font-family:var(--font-ui);font-size:12.5px;color:var(--ink-soft);}
   /* --- 3 octobre (2) : vignette-titre, planificateur en action secondaire --- */
