@@ -214,6 +214,16 @@ filtres : c'est le garde-fou anti-dérive du vocabulaire.
 - **Régime** : le carnet est végétarien par défaut. Poser `Vegan` si la recette
   l'est ; poser **`Viande / poisson`** dès qu'elle contient viande ou poisson —
   c'est un signalement d'exception, à ne jamais omettre.
+- **Viande ou poisson réduits à un assaisonnement** (décision de Val, 2 novembre
+  2026) : quand ils ne servent que de bouillon ou de condiment, les remplacer
+  par défaut, comme la sauce d'huître → sauce « d'huître » végétarienne aux
+  champignons. Bouillon de volaille ou de bœuf → `Bouillon de légumes` (même
+  quantité, même unité) ; nuoc-mâm → `Nuoc-mâm végétal` ; anchois fondus dans
+  une sauce → retirés. Noter le remplacement dans `notes` (« La recette
+  d'origine utilise …, remplacé ici par … (choix du carnet). ») et ne pas
+  poser `Viande / poisson`. Quand la viande ou le poisson structure le plat
+  (lardons, thon, guanciale, poulet…), ne rien remplacer : garder la recette
+  telle quelle et poser le tag.
 - **Si un tag pertinent manque** au vocabulaire : ne pas l'ajouter à `FACETTES`.
   L'inscrire dans `recettes-tags.md`, section « Proposés », avec sa facette
   cible, une justification courte, et la recette déclencheuse. Le skill **peut**

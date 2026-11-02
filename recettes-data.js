@@ -113,7 +113,7 @@ window.RECETTES = [
     title:"Riz aux champignons et kombu",
     image:"https://www.justonecookbook.com/wp-content/uploads/2022/07/Japanese-Mushroom-Rice-8988-I.jpg",
     imageWeb:true,
-    tags:["Plat","Riz","Chaud","Japonais"],
+    tags:["Plat","Riz","Champignons","Chaud","Japonais"],
     serves:3, prep:10, cook:25,
     source:"Photo — carnet familial",
     ingredients:[
@@ -137,7 +137,7 @@ window.RECETTES = [
   },
   {
     id:"nouilles-froides-chinoises",
-    title:"Nouilles froides chinoises",
+    title:"Nouilles froides à la chinoise, sauce sésame pimentée",
     image:"https://cjeatsrecipes.com/wp-content/uploads/2023/10/Cold-Sesame-Noodles-in-a-bowl.jpg",
     imageWeb:true,
     tags:["Plat","Nouilles","Froid","Chinois","Vegan"],
@@ -172,7 +172,7 @@ window.RECETTES = [
     title:"Rouleaux de printemps vegan au beurre de cacahuète",
     image:"https://biancazapatka.com/wp-content/uploads/2020/06/summer-rolls-rice-paper-salad-wraps.jpg",
     imageWeb:true,
-    tags:["Plat","Légumes","Froid","Vietnamien","Vegan"],
+    tags:["Plat","Dumplings / rolls","Légumes","Froid","Vietnamien","Vegan"],
     serves:2, prep:null, cook:0,
     source:"TikTok — @itsvegansis (Ma'ayan)",
     ingredients:[
@@ -206,7 +206,7 @@ window.RECETTES = [
     title:"Salade de nouilles de riz fraîches à la vietnamienne",
     image:"https://www.nautiljon.com/images/recettes/00/57/salade_de_nouilles_de_riz_a_la_vietnamienne_475.webp?1559219353",
     imageWeb:true,
-    tags:["Plat","Salade","Nouilles","Froid","Vietnamien","Viande / poisson"],
+    tags:["Plat","Salade","Nouilles","Froid","Vietnamien"],
     serves:2, prep:null, cook:2,
     source:"TikTok — Olivier Lin",
     ingredients:[
@@ -219,7 +219,7 @@ window.RECETTES = [
       {item:"Menthe fraîche", qty:null, unit:"quelques feuilles"},
       {item:"Coriandre fraîche", qty:null, unit:"quelques feuilles"},
       {item:"Oignons frits (garniture)", qty:null, unit:"une poignée"},
-      {item:"Nuoc-mâm", qty:2, unit:"c. à s."},
+      {item:"Nuoc-mâm végétal", qty:2, unit:"c. à s."},
       {item:"Vinaigre de riz", qty:1.5, unit:"c. à s."},
       {item:"Sauce soja", qty:2, unit:"c. à s."},
       {item:"Huile de sésame", qty:null, unit:"quelques gouttes"},
@@ -232,15 +232,15 @@ window.RECETTES = [
       "Lorsqu'il reste 15 secondes de cuisson, ajouter les pousses de soja.",
       "Égoutter immédiatement et passer sous l'eau froide pour stopper la cuisson. Réserver.",
       "Préparer la garniture : tailler le concombre en bâtonnets, émincer l'oignon rouge, ciseler la menthe.",
-      "Préparer la sauce : mélanger le nuoc-mâm, la sauce soja, le vinaigre de riz, l'huile de sésame, le sésame torréfié, le condiment Sichuan et le jus de citron.",
+      "Préparer la sauce : mélanger le nuoc-mâm végétal, la sauce soja, le vinaigre de riz, l'huile de sésame, le sésame torréfié, le condiment Sichuan et le jus de citron.",
       "Ajouter les nouilles refroidies, les pousses de soja, le concombre, les pickles, l'oignon rouge et la menthe. Mélanger généreusement.",
       "Dresser dans une assiette, terminer avec des oignons frits et quelques feuilles de coriandre.",
     ],
-    notes:"Source : TikTok — Olivier Lin. Contient du nuoc-mâm (sauce de poisson). La ligne sauce de l'image originale était peu lisible : lue comme '2 c. à s. de sauce soja' ; l'huile de sésame est mentionnée dans les étapes mais sans quantité distincte — à ajuster selon le goût.",
+    notes:"Source : TikTok — Olivier Lin. Le nuoc-mâm (sauce de poisson) de la source est remplacé par un nuoc-mâm végétal (choix du carnet) ; à défaut, une sauce soja claire. La ligne sauce de l'image originale était peu lisible : lue comme '2 c. à s. de sauce soja' ; l'huile de sésame est mentionnée dans les étapes mais sans quantité distincte — à ajuster selon le goût.",
   },
   {
     id:"tatin-du-soleil",
-    title:"La tatin du soleil",
+    title:"Tatin de tomates et burrata (tatin du soleil)",
     image:"https://iod.keplrstatic.com/api/ar_1.25,g_north,c_fill/ar_1.5,w_800,q_70,c_fill,f_auto,dpr_auto/mon_marche/20230606TarteTatinTomate.jpg",
     imageWeb:true,
     tags:["Plat","Légumes","Fromage","Pâte / pain","Chaud","Français"],
@@ -364,7 +364,7 @@ window.RECETTES = [
     title:"Légumes à la noix de coco et au maïs",
     image:"https://www.wokngo.fr/wp-content/uploads/2025/12/recette-chou-chinois-wok.jpeg",
     imageWeb:true,
-    tags:["Plat","Légumes","Chaud","Chinois","Viande / poisson"],
+    tags:["Plat","Légumes","Chaud","Chinois","Vegan"],
     serves:4, prep:30, cook:null,
     source:"Livre de cuisine vég. (chap. Italie/wok) — capture transcrite (recettes vege.md)",
     ingredients:[
@@ -419,7 +419,7 @@ window.RECETTES = [
   },
   {
     id:"taboule-ble-et-persil",
-    title:"Taboulé (salade de blé concassé et persil)",
+    title:"Taboulé libanais au boulgour et au persil",
     image:"https://static.750g.com/images/1200-630/6ecf46130f6a008fff5f63dfc595a396/taboule.jpg",
     imageWeb:true,
     tags:["Salade","Céréales","Froid","Moyen-oriental","Vegan"],
@@ -451,7 +451,7 @@ window.RECETTES = [
     title:"Nouilles udon épicées, sauce tofu et soja texturé",
     image:"https://www.asiamarche.fr/cdn/shop/articles/Nouilles_sautees_Udon_aux_legumes_d_hiver_et_tofu_croustillant_520x500_520x500_8facecff-6e88-4df5-a629-0129cbb31eb0_1200x1200.jpg?v=1737036262",
     imageWeb:true,
-    tags:["Plat","Nouilles","Tofu","Chaud","Japonais","Coréen","Vegan"],
+    tags:["Plat","Nouilles","Tofu","Soja","Chaud","Japonais","Coréen","Vegan"],
     serves:2, prep:null, cook:null,
     source:"Capture d'écran — TikTok (finntonny, série « 5030 »)",
     ingredients:[
@@ -542,7 +542,7 @@ window.RECETTES = [
   },
   {
     id:"oeufs-brouilles-pimentes",
-    title:"Œufs brouillés pimentés",
+    title:"Œufs brouillés pimentés à la tomate",
     image:"https://mesinspirationsculinaires.com/wp-content/uploads/2018/10/menemen-turc-aux-oeufs-poivrons-1.jpg",
     imageWeb:true,
     tags:["Plat","Œufs","Chaud","Moyen-oriental","Petit-déjeuner"],
@@ -682,7 +682,7 @@ window.RECETTES = [
   },
   {
     id:"gondi-de-tofu-citron-noir",
-    title:"Gondi de tofu et sauce tomate au citron noir séché",
+    title:"Gondi (boulettes de tofu), sauce tomate au citron noir",
     image:null,
     tags:["Plat","Tofu","Légumineuses","Chaud","Moyen-oriental","Vegan"],
     serves:4, prep:null, cook:null,
@@ -728,7 +728,7 @@ window.RECETTES = [
     title:"Mezze d'aubergines et de tomates",
     image:"https://charliecocotte.com/wp-content/uploads/2019/01/maghmour_moussaka_libanaise.jpg",
     imageWeb:true,
-    tags:["Entrée","Légumes","Chaud","Moyen-oriental"],
+    tags:["Entrée","Légumes","Chaud","Moyen-oriental","Vegan"],
     serves:4, prep:null, cook:null,
     source:"Photo de page — livre de cuisine levantin (chap. Légumes)",
     ingredients:[
@@ -754,7 +754,7 @@ window.RECETTES = [
   },
   {
     id:"roules-fromage-zaatar",
-    title:"Roulés au fromage et au za'atar",
+    title:"Roulés feuilletés au fromage et au za'atar",
     image:"https://www.bienmanger.com/tinyMceData/images/contents/812/content_lg.jpg",
     imageWeb:true,
     tags:["Apéritif","Fromage","Pâte / pain","Chaud","Moyen-oriental"],
@@ -835,7 +835,7 @@ window.RECETTES = [
   },
   {
     id:"rouleaux-halloumi-zaatar",
-    title:"Rouleaux au halloumi et au za'atar",
+    title:"Rouleaux frits au halloumi et au za'atar",
     image:"https://www.gaultmillau.ch/fp/1200/675/913/580/sites/default/files/media/field_image/2024-05/rouleaux_halloumi.jpg",
     imageWeb:true,
     tags:["Apéritif","Dumplings / rolls","Fromage","Chaud","Moyen-oriental"],
@@ -1216,7 +1216,7 @@ window.RECETTES = [
   },
   {
     id:"baklavas",
-    title:"Mes baklavas préférés",
+    title:"Baklavas",
     image:"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgn1yfVG3SuaB75cbec2bAnXuJKt7xI1aAm9GSh7PKTnXGIMacLD9XFXuPJHCIqMQXsrsc6vM7R8CZr980GxB3Cq5F0ut4H2uGrGHJUxt-8EGS1aljO97A0aLJqJhHa1esVvV55lVQFoPCZVHDgvW584c9YcUgiuDAg4Z20U7-KKFgCjOY_bPck7itnjw/w1200-h630-p-k-no-nu/BDC8BB73-230B-4A23-BC6E-B0D9DB87222B.jpeg",
     imageWeb:true,
     tags:["Sucré","Pâte / pain","Chaud","Moyen-oriental"],
@@ -1340,7 +1340,7 @@ window.RECETTES = [
   },
   {
     id:"lentilles-corail-marocaine",
-    title:"Lentilles corail à la marocaine (feta light ou œuf)",
+    title:"Lentilles corail à la marocaine",
     image:"https://fr.hertaste.net/thumb/1024/lentilles-corail-a-la-marocaine.webp",
     imageWeb:true,
     tags:["Plat","Légumineuses","Chaud","Maghrébin"],
@@ -1558,7 +1558,7 @@ window.RECETTES = [
     title:"Lentilles aux poireaux et saucisse fumée",
     image:"https://www.kilometre-0.fr/wp-content/uploads/2024/12/20241201Cuisine_mart45.webp",
     imageWeb:true,
-    tags:["Plat","Légumineuses","Légumes","Chaud","Viande / poisson"],
+    tags:["Plat","Légumineuses","Légumes","Chaud","Français","Viande / poisson"],
     serves:4, prep:null, cook:15,
     source:"Feuille imprimée — carnet familial (dépôt Epson, p. 7)",
     ingredients:[
@@ -1586,7 +1586,7 @@ window.RECETTES = [
     title:"Chili con carne",
     image:"https://s3-eu-west-1.amazonaws.com/images-ca-1-0-1-eu/recipe_photos/original/165/chili-con-carne-3000x2000.jpg",
     imageWeb:true,
-    tags:["Plat","Légumineuses","Chaud","Mexicain","Viande / poisson"],
+    tags:["Plat","Légumineuses","Chaud","Nord-américain","Viande / poisson"],
     serves:4, prep:null, cook:35,
     source:"Feuille imprimée annotée — carnet familial (dépôt Epson, p. 8)",
     ingredients:[
@@ -1849,7 +1849,7 @@ window.RECETTES = [
     title:"Poivrons marinés",
     image:"https://www.mesinspirationsculinaires.com/wp-content/uploads/2019/08/recette-poivrons-marines-a-lhuile-dolive-1.jpg",
     imageWeb:true,
-    tags:["Entrée","Légumes","Froid","Vegan"],
+    tags:["Entrée","Légumes","Froid","Italien","Vegan"],
     serves:4, prep:20, cook:20,
     source:"PDF Epson 04-07 — magazine",
     ingredients:[
@@ -2052,7 +2052,7 @@ window.RECETTES = [
   },
   {
     id:"tarte-a-l-oignon-doux-et-au-thym-d-anouk",
-    title:"La tarte à l'oignon doux et au thym d'Anouk",
+    title:"Tarte à l'oignon doux, au chèvre et au thym",
     image:"https://www.papillesetpupilles.fr/wp-content/uploads/2014/11/Tarte-aux-oignons-et-pignons-de-pin-Copyright-SMarina-shutterstock_86376007-1.jpeg",
     imageWeb:true,
     tags:["Plat","Pâte / pain","Légumes","Chaud","Français"],
@@ -2165,7 +2165,7 @@ window.RECETTES = [
     title:"Tian de légumes au chèvre",
     image:"https://unedroledemirabelle.com/wp-content/uploads/2022/07/img_4661.jpg",
     imageWeb:true,
-    tags:["Plat","Légumes","Chaud","Français"],
+    tags:["Plat","Légumes","Fromage","Chaud","Français"],
     serves:4, prep:20, cook:60,
     source:"PDF Epson 04-07 — magazine (Gema Gomez)",
     ingredients:[
@@ -2574,7 +2574,7 @@ window.RECETTES = [
   },
   {
     id:"soupe-tomates",
-    title:"Soupe tomates (à la viande)",
+    title:"Soupe de tomates à la viande",
     image:"https://www.biendecheznous.be/sites/default/files/styles/960w_ratio_2_1/public/images/Tomatensoep%20met%20balletjes%20%282%29.jpg?itok=Y6mEKOA1",
     imageWeb:true,
     tags:["Soupe","Légumes","Chaud","Belge","Viande / poisson"],
@@ -2607,7 +2607,7 @@ window.RECETTES = [
     title:"Caviar d'aubergines",
     image:"https://static.750g.com/images/1200-630/921d1390e98d658627683011734d3570/caviar-d-aubergines.jpeg",
     imageWeb:true,
-    tags:["Entrée","Apéritif","Légumes","Froid","Vegan"],
+    tags:["Entrée","Apéritif","Légumes","Froid","Français","Vegan"],
     serves:6, prep:15, cook:45,
     source:"PDF Epson 04-07 — fiche texte",
     ingredients:[
@@ -2632,10 +2632,10 @@ window.RECETTES = [
   },
   {
     id:"pate-a-galettes-de-ble-noir",
-    title:"Pâte à galettes de blé noir traditionnelle",
+    title:"Galettes de blé noir",
     image:"https://static.750g.com/images/1200-630/b120a67502164c2693c1cad6c0e70fe0/galette-de-sarrasin-2.jpg",
     imageWeb:true,
-    tags:["Plat","Céréales","Pâte / pain","Français"],
+    tags:["Plat","Céréales","Pâte / pain","Chaud","Français"],
     serves:5, prep:20, cook:10,
     source:"PDF Epson 04-07 — Marmiton (marmiton.org)",
     ingredients:[
@@ -2714,10 +2714,10 @@ window.RECETTES = [
   },
   {
     id:"soupe-aux-lentilles-carottes",
-    title:"Soupe aux lentilles et carottes",
+    title:"Soupe de lentilles vertes aux carottes",
     image:"https://mesinspirationsculinaires.com/wp-content/uploads/2022/01/la-soupe-d-hiver-aux-lentlles-corail-1.jpg",
     imageWeb:true,
-    tags:["Soupe","Légumineuses","Légumes","Chaud","Maghrébin","Viande / poisson"],
+    tags:["Soupe","Légumineuses","Légumes","Chaud","Maghrébin"],
     serves:4, prep:30, cook:50,
     source:"PDF Epson 04-07 — recette imprimée (Samar)",
     ingredients:[
@@ -2731,7 +2731,7 @@ window.RECETTES = [
       {item:"Laurier", qty:1, unit:"feuille", warn:true},
       {item:"Thym", qty:null, unit:"quelques branches", warn:true},
       {item:"Clou de girofle", qty:2, unit:"", warn:true},
-      {item:"Bouillon de volaille", qty:1, unit:"l"},
+      {item:"Bouillon de légumes", qty:1, unit:"l"},
       {item:"Beurre", qty:60, unit:"g"},
       {item:"Sel", qty:1, unit:"pincée", warn:true},
       {item:"Poivre noir", qty:null, unit:"au goût", warn:true},
@@ -2740,11 +2740,11 @@ window.RECETTES = [
       "Mettre les lentilles à tremper dans l'eau tiède pendant 1 h.",
       "Égoutter les lentilles, les verser dans une casserole avec l'eau froide non salée, porter à ébullition puis égoutter immédiatement et réserver (jeter cette première eau de cuisson).",
       "Pendant ce temps, peler les oignons et l'ail ; piquer les oignons avec les clous de girofle. Réaliser un bouquet garni avec les aromates. Éplucher, laver et détailler les carottes en petits dés, couper les tomates en quartiers.",
-      "Sur feu moyen, faire fondre le beurre dans un faitout, ajouter les tomates et les carottes puis mouiller avec le bouillon de volaille. Verser les lentilles, ajouter le bouquet garni, saler et poivrer.",
+      "Sur feu moyen, faire fondre le beurre dans un faitout, ajouter les tomates et les carottes puis mouiller avec le bouillon de légumes. Verser les lentilles, ajouter le bouquet garni, saler et poivrer.",
       "Porter à ébullition puis réduire à petit bouillon et prolonger la cuisson 30 min. Retirer et jeter le bouquet garni.",
       "Mixer la soupe ou la passer au moulin à légumes ; servir en saupoudrant de cumin et de Cayenne si désiré.",
     ],
-    notes:"Cuisine algérienne. Le bouillon de volaille peut être remplacé par un bouillon de légumes pour une version végétarienne. Délicieux avec un peu de moutarde de Dijon.",
+    notes:"Cuisine algérienne. La recette d'origine mouille au bouillon de volaille, remplacé ici par un bouillon de légumes (choix du carnet). Délicieux avec un peu de moutarde de Dijon.",
   },
   {
     id:"soupe-de-lentilles-au-curry-et-lait-de-coco",
@@ -2778,10 +2778,10 @@ window.RECETTES = [
   },
   {
     id:"soupe-de-corail-aux-oignons-frits",
-    title:"Soupe de corail aux oignons frits",
+    title:"Soupe de lentilles corail aux oignons frits",
     image:"https://i0.wp.com/dumplingsandmore.fr/wp-content/uploads/2021/04/P1020447.jpg",
     imageWeb:true,
-    tags:["Soupe","Légumineuses","Chaud","Moyen-oriental","Viande / poisson"],
+    tags:["Soupe","Légumineuses","Chaud","Moyen-oriental"],
     serves:6, prep:5, cook:20,
     source:"PDF Epson 04-07 — 750g.com",
     ingredients:[
@@ -2794,7 +2794,7 @@ window.RECETTES = [
       {item:"Coriandre moulue", qty:1, unit:"c. à c.", warn:true},
       {item:"Ras el hanout", qty:2, unit:"c. à c.", warn:true},
       {item:"Gingembre moulu", qty:1, unit:"c. à c.", warn:true},
-      {item:"Bouillon de volaille", qty:1, unit:"cube", warn:true},
+      {item:"Bouillon de légumes", qty:1, unit:"cube", warn:true},
       {item:"Sauce tomate", qty:2, unit:"c. à c."},
       {item:"Huile d'olive", qty:2, unit:"c. à s."},
       {item:"Crème fraîche", qty:2, unit:"cl"},
@@ -2808,7 +2808,7 @@ window.RECETTES = [
       "En fin de cuisson, rectifier l'assaisonnement et verser l'huile d'olive. Remuer et faire frire l'oignon rouge coupé en cubes.",
       "Dresser et décorer avec les oignons frits et un trait de crème fraîche.",
     ],
-    notes:"Vérifier le niveau d'eau en cours de cuisson et rajouter si besoin.",
+    notes:"Vérifier le niveau d'eau en cours de cuisson et rajouter si besoin. La recette d'origine utilise un cube de bouillon de volaille, remplacé ici par un cube de bouillon de légumes (choix du carnet).",
   },
   {
     id:"asperges-a-la-flamande",
@@ -3215,16 +3215,15 @@ window.RECETTES = [
   },
   {
     id:"oeufs-poches-tomate-anchois-ricotta",
-    title:"Œufs pochés à la sauce tomate, anchois et ricotta",
+    title:"Œufs pochés à la sauce tomate et à la ricotta",
     image:null,
-    tags:["Plat","Œufs","Chaud","Italien","Viande / poisson"],
+    tags:["Plat","Œufs","Chaud","Italien"],
     serves:2, prep:10, cook:15,
     source:"Fiche texte — retranscription d'une vidéo sans instructions vocales",
     ingredients:[
       {item:"Œuf", qty:5, unit:""},
       {item:"Tomates pelées (en boîte)", prep:"entières, écrasées à la main", qty:800, unit:"g"},
       {item:"Ail", prep:"finement émincé", qty:4, unit:"gousse"},
-      {item:"Filets d'anchois", prep:"à l'huile", qty:3, unit:"filet"},
       {item:"Flocons de piment", qty:0.5, unit:"c. à c.", warn:true},
       {item:"Beurre", prep:"doux", qty:2, unit:"c. à s."},
       {item:"Ricotta", qty:4, unit:"c. à s."},
@@ -3236,7 +3235,7 @@ window.RECETTES = [
     ],
     steps:[
       "Éplucher et émincer finement les gousses d'ail.",
-      "Faire chauffer un généreux filet d'huile d'olive à feu moyen dans une grande poêle, y ajouter l'ail et les filets d'anchois et remuer jusqu'à ce que les anchois fondent et que l'ail soit parfumé.",
+      "Faire chauffer un généreux filet d'huile d'olive à feu moyen dans une grande poêle, y ajouter l'ail et remuer jusqu'à ce qu'il soit parfumé.",
       "Ajouter les flocons de piment et mélanger.",
       "Écraser grossièrement les tomates à la main, les verser avec leur jus dans la poêle, saler, poivrer et laisser mijoter quelques minutes.",
       "Incorporer le beurre au centre de la sauce et mélanger doucement pour l'y faire fondre.",
@@ -3246,7 +3245,7 @@ window.RECETTES = [
       "Saler et poivrer les jaunes, répartir des cuillerées de ricotta sur la sauce, parsemer de basilic déchiré et terminer par un filet d'huile d'olive.",
       "Servir immédiatement avec le pain grillé.",
     ],
-    notes:"Variante des « œufs en purgatoire » (shakshuka italienne). Les anchois rendent la recette non végétarienne : les omettre pour une version végé, la sauce reste bonne.",
+    notes:"Variante des « œufs en purgatoire » (shakshuka italienne). La version d'origine fait fondre 3 filets d'anchois à l'huile avec l'ail ; ils sont retirés ici pour garder la recette végétarienne (choix du carnet), la sauce reste bonne.",
   },
   {
     id:"pain-fourre-pommes-de-terre-pesto",
@@ -3280,7 +3279,7 @@ window.RECETTES = [
   },
   {
     id:"tarte-potimarron-oignons-confits-chevre",
-    title:"Tarte tatin au potimarron, oignons confits et chèvre",
+    title:"Tatin de potimarron, oignons confits et chèvre",
     image:null,
     tags:["Plat","Légumes","Fromage","Pâte / pain","Chaud","Français"],
     serves:4, prep:null, cook:60,
@@ -3400,7 +3399,7 @@ window.RECETTES = [
     id:"riz-saute-aux-legumes",
     title:"Riz sauté aux légumes",
     image:null,
-    tags:["Plat","Riz","Légumes","Chaud","Vegan"],
+    tags:["Plat","Riz","Légumes","Chaud","Chinois","Vegan"],
     serves:2, prep:null, cook:null,
     source:"Capture d'écran TikTok — @chey__nese (2023-09-07) — étapes reconstruites",
     ingredients:[
@@ -3427,7 +3426,7 @@ window.RECETTES = [
     id:"liseron-eau-saute-ail",
     title:"Liseron d'eau sauté à l'ail (rau muống xào tỏi)",
     image:null,
-    tags:["Accompagnement","Légumes","Chaud","Vietnamien"],
+    tags:["Accompagnement","Légumes","Chaud","Vietnamien","Vegan"],
     serves:2, prep:5, cook:5,
     source:"Capture d'écran TikTok — @Tam (2025-11-14)",
     ingredients:[
@@ -3450,9 +3449,9 @@ window.RECETTES = [
   },
   {
     id:"taboule-maison-semoule-grenade",
-    title:"Taboulé maison à la semoule, grenade et baies de goji",
+    title:"Taboulé à la semoule, grenade et goji",
     image:null,
-    tags:["Salade","Céréales","Froid","Moyen-oriental","Vegan"],
+    tags:["Salade","Céréales","Froid","Français","Vegan"],
     serves:4, prep:20, cook:null,
     source:"Capture d'écran TikTok — @louloukitchen_ (2023-06-19)",
     ingredients:[
@@ -3475,7 +3474,7 @@ window.RECETTES = [
       "Découper tous les légumes très finement puis les ajouter à la semoule.",
       "Recouvrir d'un torchon et laisser reposer 20 minutes : la semoule gonfle grâce au jus de citron et à l'eau rendue par les légumes.",
     ],
-    notes:"Version « pas libanaise » : semoule crue gonflée à froid, jamais cuite. Les baies de goji sont, selon l'auteure, ce qui « fait la différence ». Nombre de personnes non précisé : 4 retenu d'après les 250 g de semoule. À ne pas confondre avec le « Taboulé (salade de blé concassé et persil) » déjà au carnet, à base de boulgour et de persil dominant.",
+    notes:"Version « pas libanaise » : semoule crue gonflée à froid, jamais cuite. Les baies de goji sont, selon l'auteure, ce qui « fait la différence ». Nombre de personnes non précisé : 4 retenu d'après les 250 g de semoule. À ne pas confondre avec le « Taboulé libanais au boulgour et au persil » déjà au carnet, à base de boulgour et de persil dominant.",
   },
   {
     id:"filet-o-tofu",
@@ -3558,7 +3557,7 @@ window.RECETTES = [
   },
   {
     id:"sauce-arachide-mafe",
-    title:"Sauce arachide (mafé) aux légumes",
+    title:"Mafé de légumes (sauce arachide)",
     image:"https://www.labouscule.com/wp-content/uploads/2026/03/recette-mafe-aux-legumes.jpg",
     imageWeb:true,
     tags:["Plat","Légumes","Chaud","Afrique subsaharienne","Vegan"],
@@ -3574,6 +3573,7 @@ window.RECETTES = [
       {item:"Panais", prep:"en gros dés", qty:2, unit:""},
       {item:"Émincés végétaux", prep:"facultatif, préalablement sautés", qty:400, unit:"g"},
       {item:"Bouillon de légumes", prep:"cube (kubor)", qty:1, unit:"cube", warn:true},
+      {item:"Laurier", qty:1, unit:"feuille", warn:true},
       {item:"Huile neutre", prep:"tournesol", qty:null, unit:"pour la cuisson"},
       {item:"Sel", qty:null, unit:"au goût", warn:true},
       {item:"Poivre noir", qty:null, unit:"au goût", warn:true},
@@ -3587,11 +3587,11 @@ window.RECETTES = [
       "Ajouter les légumes, et éventuellement les émincés végétaux préalablement sautés, puis laisser mijoter 15 à 20 minutes jusqu'à ce que la sauce soit épaisse et les légumes fondants.",
       "Servir avec du riz blanc.",
     ],
-    notes:"Sauce emblématique de l'Afrique de l'Ouest, ici sans viande. « Légumes saisonniers » dans la source : 2 carottes et 2 panais dans la version filmée. La feuille de laurier apparaît dans les étapes de la source mais pas dans sa liste d'ingrédients. Nombre de personnes non précisé : 4 retenu d'après le litre de bouillon.",
+    notes:"Sauce emblématique de l'Afrique de l'Ouest, ici sans viande. « Légumes saisonniers » dans la source : 2 carottes et 2 panais dans la version filmée. La feuille de laurier, présente dans les étapes de la source mais pas dans sa liste d'ingrédients, a été ajoutée à la liste. Nombre de personnes non précisé : 4 retenu d'après le litre de bouillon.",
   },
   {
     id:"tarte-tatin-echalote-burrata",
-    title:"Tarte tatin d'échalote et burrata",
+    title:"Tatin d'échalotes et burrata",
     image:null,
     tags:["Plat","Légumes","Fromage","Pâte / pain","Chaud","Français"],
     serves:4, prep:null, cook:20,
@@ -3682,7 +3682,7 @@ window.RECETTES = [
     title:"Mapo tofu végétarien (麻婆豆腐) — version douce",
     image:"https://omnivorescookbook.com/wp-content/uploads/2021/08/210728_Vegetarian-Mapo-Tofu_3-1.jpg",
     imageWeb:true,
-    tags:["Plat","Tofu","Riz","Chaud","Chinois"],
+    tags:["Plat","Tofu","Riz","Chaud","Chinois","Vegan"],
     serves:4, prep:20, cook:20,
     source:"Fiche de synthèse déposée (dépôt/mapo-tofu-vege-1.md) — sources croisées : Wei Guo / Red House Spice, Fuchsia Dunlop « Every Grain of Rice », The Woks of Life",
     ingredients:[
@@ -3697,7 +3697,7 @@ window.RECETTES = [
       {item:"Riz au jasmin", qty:null, unit:"en accompagnement"},
       {item:"Huile neutre", prep:"arachide ou tournesol", qty:4, unit:"c. à s."},
       {item:"Fécule", prep:"délayée dans 3 c. à s. d'eau froide", qty:2, unit:"c. à s."},
-      {item:"Bouillon", prep:"½ cube Avecrem poulet pour 350 ml, ou bouillon de légumes non salé, ou eau claire", qty:350, unit:"ml"},
+      {item:"Bouillon de légumes", prep:"non salé, ou eau claire", qty:350, unit:"ml"},
       {item:"Ail", prep:"haché", qty:1, unit:"c. à s."},
       {item:"Sucre", qty:0.25, unit:"c. à c.", warn:true},
       {item:"Sel", prep:"pour l'eau d'ébouillantage du tofu", qty:1, unit:"c. à c.", warn:true},
@@ -3716,7 +3716,7 @@ window.RECETTES = [
       "Baisser sur feu moyen et lier en trois fois avec la fécule délayée (bien remélangée avant chaque ajout), en attendant une trentaine de secondes entre chaque tiers. Arrêter quand la sauce paraît encore un peu trop liquide : elle épaissira jusqu'à table.",
       "Couper le feu, ajouter le poivre de Sichuan moulu et l'ail vert, mélanger d'un dernier mouvement doux. Servir immédiatement, très chaud, avec le riz blanc, et poser le reste du poivre moulu sur la table.",
     ],
-    notes:"Version douce, sans viande ni champignons : ce qui est retiré, c'est le piment sec et l'huile pimentée (d'où vient la brûlure des versions de restaurant), pas le doubanjiang, qui reste à pleine dose — c'est la colonne vertébrale du goût. Le doubanjiang de Pixian (郫县) est irremplaçable ; à défaut, toban djan Lee Kum Kee. Compter 40 minutes du départ à table, riz lancé en premier. Les quatre vrais risques : oublier le riz, brûler le doubanjiang, lier la sauce en une seule fois, remuer au lieu de pousser le tofu. Ne jamais moudre le poivre de Sichuan dans un moulin à poivre noir : les baies huileuses encrassent durablement le mécanisme. Le poivre s'ajoute en fin de cuisson, jamais en infusion dans l'huile où il devient amer. L'ail vert chinois (蒜苗) est préféré à la cébette ; repli : jeunes poireaux émincés fin. Le bouillon par défaut de la fiche est un demi-cube d'Avecrem poulet pour 350 ml — bouillon de légumes non salé ou eau claire fonctionnent aussi (à choisir si la recette doit rester strictement végétarienne). Variante : la même base de sauce fonctionne avec des aubergines ou du chou-fleur à la place du tofu.",
+    notes:"Version douce, sans viande ni champignons : ce qui est retiré, c'est le piment sec et l'huile pimentée (d'où vient la brûlure des versions de restaurant), pas le doubanjiang, qui reste à pleine dose — c'est la colonne vertébrale du goût. Le doubanjiang de Pixian (郫县) est irremplaçable ; à défaut, toban djan Lee Kum Kee. Compter 40 minutes du départ à table, riz lancé en premier. Les quatre vrais risques : oublier le riz, brûler le doubanjiang, lier la sauce en une seule fois, remuer au lieu de pousser le tofu. Ne jamais moudre le poivre de Sichuan dans un moulin à poivre noir : les baies huileuses encrassent durablement le mécanisme. Le poivre s'ajoute en fin de cuisson, jamais en infusion dans l'huile où il devient amer. L'ail vert chinois (蒜苗) est préféré à la cébette ; repli : jeunes poireaux émincés fin. La fiche d'origine propose par défaut un demi-cube de bouillon de volaille pour 350 ml ; le carnet retient un bouillon de légumes non salé ou de l'eau claire. Variante : la même base de sauce fonctionne avec des aubergines ou du chou-fleur à la place du tofu.",
   },
   {
     id:"crackers-fromage-sesame",

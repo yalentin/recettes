@@ -82,6 +82,7 @@ window.INGREDIENTS = [
   {name:"Moutarde", aliases:[], unit:"g", rayon:"Sauces & condiments"},
   {name:"Navets pickles", aliases:[], unit:"une poignée", rayon:"Sauces & condiments"},
   {name:"Nuoc-mâm", aliases:["Sauce de poisson", "Nam pla"], unit:"c. à s.", rayon:"Sauces & condiments"},
+  {name:"Nuoc-mâm végétal", aliases:["Sauce de poisson végétale", "Nuoc-mâm vegan"], unit:"c. à s.", rayon:"Sauces & condiments"},
   {name:"Oignons frits (garniture)", aliases:[], unit:"une poignée", rayon:"Sauces & condiments"},
   {name:"Pâte de miso", aliases:["Pâte de miso blanc"], unit:"c. à s.", rayon:"Sauces & condiments"},
   {name:"Saké de cuisine", aliases:[], unit:"c. à s.", rayon:"Sauces & condiments"},

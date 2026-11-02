@@ -1,8 +1,30 @@
 # Audit des recettes — 2 novembre 2026
 
 État audité : 120 recettes (`recettes-data.js` au commit `4adefba`).
-Rien n'a encore été modifié dans les recettes : ce document liste les
-propositions, Val tranche, puis on applique.
+
+## Arbitrages de Val (2 novembre 2026) — appliqués
+
+- **A. Erreurs de tags** : appliqué.
+- **B. Ingrédient principal** : **refusé**. Val préfère le fonctionnement
+  actuel (« Riz » sur les plats servis avec du riz, « Œufs » même en liant).
+  Ne pas reproposer.
+- **C. Titres** : les 18 renommages appliqués, plus « Œufs pochés à la sauce
+  tomate et à la ricotta » (conséquence du retrait des anchois).
+- **D. Viande** : les 5 recettes « condiment » végétalisées (bouillon de
+  légumes, nuoc-mâm végétal ajouté au registre, anchois retirés) ; le mapo tofu
+  passe Vegan. Les 24 autres recettes avec viande restent telles quelles.
+- **E. Fusions** : aucune.
+- **F. Cuisines** : appliqué.
+- **H. Skill** : règle de nommage (`references/format-recette.md`) et règle
+  viande-condiment (§ 6 du skill) inscrites ; pas de règle sur l'ingrédient
+  principal.
+
+Question de Val en retour : les soupes de lentilles. Voir la section I en fin
+de document.
+
+---
+
+Ce qui suit est l'audit tel que proposé avant arbitrage.
 
 ## Constat général
 
@@ -168,3 +190,21 @@ Si les règles ci-dessus sont validées, les inscrire dans le skill d'ingestion
   le titre doit permettre de les distinguer d'un coup d'œil ;
 - selon l'arbitrage D : bouillon de volaille, nuoc-mâm et anchois d'assaisonnement
   remplacés par défaut, comme la sauce d'huître.
+
+## I. Les soupes de lentilles (question de Val)
+
+Le carnet compte 9 recettes à base de lentilles, dont 4 soupes. Hors lentilles,
+sel, huile, ail et oignon, deux soupes ne partagent au plus que 12 % de leurs
+ingrédients (en pratique : la carotte). Chacune a un usage distinct :
+
+| Soupe | Lentilles | Ce qui la distingue | Temps |
+|---|---|---|---|
+| Harira | brunes + pois chiches | soupe-repas, vermicelles, ras el hanout | long |
+| Soupe de lentilles au curry et lait de coco | brunes en boîte | express, non mixée | ~40 min |
+| Soupe de lentilles corail aux oignons frits | corail | mixée, épicée (ras el hanout, gingembre) | ~25 min |
+| Soupe de lentilles vertes aux carottes | vertes, trempées | mixée, douce (bouquet garni, beurre) | ~1 h 20 + trempage |
+
+Les deux plus proches sont les deux soupes mixées lentilles-carottes, mais ni
+la lentille, ni l'assaisonnement, ni le temps ne sont les mêmes. Pas de fusion
+proposée. Pour trancher entre elles, le plus simple est de les cuisiner et de
+les noter : celle qui reste sous les autres pourra sortir.

@@ -36,6 +36,22 @@ Chaque recette est un objet JavaScript ajouté au tableau `window.RECETTES` de
   en cas de collision). Exemple : « Riz aux lentilles & oignons » →
   `riz-aux-lentilles-oignons`.
 - **title** : tel qu'on veut le lire. Garde les accents et la ponctuation.
+  Règles de nommage (décision de Val, 2 novembre 2026) :
+  - le plat d'abord, puis ce qui le distingue : « Tatin d'échalotes et
+    burrata », « Soupe de lentilles corail aux oignons frits » ;
+  - pas d'article ni de possessif en tête (« La tatin… », « Mes baklavas… ») ;
+    pas de nom de l'auteur (« … d'Anouk ») ; pas d'option dans le titre
+    (« (feta light ou œuf) ») : tout cela va dans `notes` ;
+  - un nom de plat d'origine peut rester entre parenthèses quand il aide à le
+    retrouver (« Tatin de tomates et burrata (tatin du soleil) ») ;
+  - **avant d'écrire le titre, chercher les recettes de la même famille** déjà
+    au carnet (même plat, même ingrédient vedette : tatins, taboulés, soupes de
+    lentilles, roulés au za'atar…). Le nouveau titre doit s'en distinguer d'un
+    coup d'œil, par la variété (« lentilles vertes » / « lentilles corail »),
+    la pâte (« feuilletés » / « frits »), la base. S'il ne s'en distingue
+    pas, c'est peut-être un doublon : appliquer le §9 du skill.
+  Ce n'est pas inventer un titre (règle d'or n°4) : on nomme le plat que la
+  source décrit, on ne comble pas un titre illisible.
 - **image** : deux formats valides — chemin local `"images/<id>.jpg"` si une photo a été enregistrée, ou URL absolue distante `"https://..."` si l'image provient du web (repli web). Sinon `null` (valeur par défaut).
 - **imageWeb** (optionnel) : `true` uniquement si l'image vient d'internet
   (illustration). Déclenche un badge « illustration web » dans la visionneuse.
